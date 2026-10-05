@@ -17,9 +17,11 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 8.x
-      - name: Restore
-        run: dotnet restore
-      - name: Build
-        run: dotnet build --configuration Release --no-restore
+      - name: Restore library
+        run: dotnet restore TheSingularityWorkshop.Profiles.csproj
+      - name: Restore tests
+        run: dotnet restore tests/TheSingularityWorkshop.Profiles.Tests/TheSingularityWorkshop.Profiles.Tests.csproj
+      - name: Build tests
+        run: dotnet build tests/TheSingularityWorkshop.Profiles.Tests/TheSingularityWorkshop.Profiles.Tests.csproj --configuration Release --no-restore
       - name: Test
-        run: dotnet test --configuration Release --no-build
+        run: dotnet test tests/TheSingularityWorkshop.Profiles.Tests/TheSingularityWorkshop.Profiles.Tests.csproj --configuration Release --no-build
