@@ -1,4 +1,5 @@
 using TheSingularityWorkshop.Profiles;
+using Xunit;
 
 namespace TheSingularityWorkshop.Profiles.Tests;
 
