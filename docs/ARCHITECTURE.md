@@ -152,3 +152,36 @@ Profile authorization
 ~~~
 
 Spatial LOD and renderer behavior remain outside Profiles.
+
+
+## Sovereign identity separation
+
+Identity and presentation are separate layers.
+
+~~~text
+                 canonical identity
+                        |
+             +----------+----------+
+             |                     |
+       personal profile       publisher profile
+             |                     |
+       private persona       public persona
+             |                     |
+             +----------+----------+
+                        |
+              trusted identity layer
+~~~
+
+ProfileIdentityLink exists for trusted infrastructure. It is not emitted by Profile.RepresentTo.
+
+This allows a creator to publish work under a chosen publisher identity without requiring the audience to learn the canonical identity behind it.
+
+Legal disclosure is an authority boundary, not an ordinary observer capability. Any disclosure mechanism must validate the applicable legal process and jurisdiction outside the neutral domain model.
+
+## Data licensing
+
+Licensing is opt-in and distinct from disclosure.
+
+ProfileDataLicensePolicy says whether the owner has enabled licensing and which micro-data keys are eligible. It does not sell data, set prices, identify buyers, settle transactions, or encode a platform fee.
+
+Those concerns belong to a separate marketplace boundary.
