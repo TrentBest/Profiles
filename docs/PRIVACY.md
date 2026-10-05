@@ -109,3 +109,36 @@ If a user explicitly chooses to license data, that should be an explicit transac
 The platform should not silently reinterpret ordinary disclosure as permission to sell.
 
 A future marketplace can represent purpose, buyer, requested claims, permitted representation, price, duration, consent, revocation, settlement, and platform allocation.
+
+
+## Canonical identity versus public persona
+
+A user may deliberately maintain multiple representations of themselves:
+
+- a canonical profile used for trusted account ownership
+- a personal social profile
+- a publisher/creator profile
+- a commercial identity
+- an experience-specific identity
+
+These profiles can be privately linked by trusted infrastructure while remaining separate to ordinary observers.
+
+The privacy goal is not merely to hide a field. It is to avoid revealing the relationship itself.
+
+Only an authorized identity-resolution process should be able to connect the profiles. Legal disclosure, where required, belongs to applicable law and validated legal process; it is not a normal profile permission.
+
+## Data licensing is a user choice
+
+Profiles distinguishes three different actions:
+
+1. **Disclosure** — showing information to an authorized observer.
+2. **Verification** — proving a proposition without necessarily revealing the underlying fact.
+3. **Licensing** — explicitly offering selected information for an economic purpose.
+
+One does not imply another.
+
+A user who never enables licensing has not implicitly offered their data for sale merely because an attribute is public.
+
+When licensing is enabled, the owner controls the micro-data allow-list. A future marketplace can negotiate the actual transaction and settlement independently.
+
+The platform's economic share is therefore a sustainability mechanism, not a transfer of ownership. The core deliberately does not prescribe a percentage.
