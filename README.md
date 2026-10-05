@@ -1,278 +1,323 @@
 # The Singularity Workshop — Profiles
 
-**Profiles are not a user database.**
+![Profiles architecture](docs/images/profiles-architecture.svg)
 
-TheSingularityWorkshop.Profiles is the privacy and representation boundary for entities in the Singularity Workshop ecosystem.
+**Profiles is the Workshop's provider-neutral entity, identity, representation, and data-sovereignty abstraction.**
 
-> **Your data belongs to you. The Workshop provides the machinery for deciding what another entity may know, see, prove, or experience.**
+> A Profile is an abstraction of an entity — not a database record.
 
-## The core model
+That distinction matters. When you consume **TheSingularityWorkshop.Profiles**, you get one common semantic vocabulary for the kinds of entities that participate in an ecosystem:
+
+| Entity | ProfileEntityKind | Example |
+|---|---|---|
+| Individual | Individual | a person, creator, participant |
+| Company | Company | a business, studio, publisher |
+| Group | Group | guild, team, community |
+| Organization | Organization | school, institution, nonprofit |
+| Experience | Experience | game, world, application, service |
+| Agent | Agent | autonomous software or machine actor |
+| Custom | Custom | an application-defined entity |
+
+The consuming application owns the behavior around those entities. Profiles does not become your database, login provider, renderer, payment processor, or application framework.
+
+## The central idea
 
 ~~~text
+                         ENTITY
+                            |
+                            v
                          PROFILE
-                            |
-          +-----------------+------------------+
-          |                 |                  |
-       Micro-data       Relationships       Groups
-          |                 |                  |
-      disclosure        membership         permissions
-          |                 |                  |
-          +-----------------+------------------+
-                            |
-                     REPRESENTATION
                             |
              +--------------+--------------+
              |              |              |
-          Friend          Stranger       Experience
+          Claims       Relationships     Groups
              |              |              |
-        avatar A       anonymous      avatar B
+        disclosure       semantics       policy
+             +--------------+--------------+
+                            |
+                            v
+                OBSERVER-SPECIFIC
+                  REPRESENTATION
 ~~~
 
-The same underlying profile can produce different representations for different observers.
+The same underlying Profile can produce different representations for different observers.
+
+## Identity is not appearance
+
+A canonical identity answers **which entity is this?**
+
+A representation answers **what may this observer receive?**
+
+~~~text
+Canonical Profile
+       |
+       | disclosure / audience policy
+       v
+ProfileRepresentation
+       |
+       +-- display name
+       +-- avatar
+       +-- permitted claims
+~~~
+
+This makes privacy a domain boundary rather than a collection of UI tricks.
 
 ## Micro-data is the unit of control
 
-A profile can hold arbitrary small claims: age, display name, language, location, interests, capabilities, memberships, avatar preferences, and application-defined data.
+Profiles encourages applications to request the smallest useful piece of information.
 
-Each claim can have its own disclosure rule. A profile never needs to become one giant record that every application receives.
+A profile may contain claims such as:
 
-## Exclusion
+- age
+- language
+- role
+- location
+- interests
+- capabilities
+- memberships
+- application-defined attributes
 
-An exclusion is stronger than hiding an avatar.
+Each claim can have its own disclosure rule.
 
-~~~text
-Permitted observer:
-    chosen identity + permitted claims + permitted avatar
+A consumer does not have to receive the entire profile merely because it needs one fact.
 
-Excluded observer:
-    stable profile ID + anonymous representation
+## Disclosure
+
+The core provides four disclosure scopes:
+
+- **Private** — not disclosed by the rule.
+- **Public** — available to observers.
+- **Group** — available to members of a selected group.
+- **Explicit** — available to selected entities.
+
+~~~csharp
+var language = ProfileAttributeDefinition.Create("language", typeof(string));
+profile.SetClaim(new ProfileClaim(language, "en-US"));
+profile.SetDisclosureRule(
+    new DisclosureRule("language", DisclosureScope.Public));
 ~~~
 
-No age, gender, username, display name, or unrelated profile claims are exposed by the core representation.
+Then:
 
-## Groups and multiple appearances
+~~~csharp
+var representation = profile.RepresentTo(observerId);
+~~~
 
-Users can define groups such as Friends, Family, Work, Game Guild, Customers, and Trusted Creators.
+The representation contains only what policy allows.
 
-A person can therefore appear as a fluffy ape to one observer, a Cheshire Cat to friends, and an anonymous representation to someone they have excluded.
+## Groups, avatars, and exclusion
+
+A Profile can define groups such as Friends, Family, Customers, Guild, or Trusted Creators.
+
+The same entity can appear differently to different observers:
+
+~~~text
+Public observer   -> public avatar
+Friend             -> group avatar
+Trusted observer   -> explicit avatar
+Excluded observer  -> anonymous representation
+~~~
+
+An exclusion is stronger than hiding a UI element. The excluded representation contains no display name and no claims.
 
 **Identity is not appearance.**
 
-An avatar is a representation selected by policy.
+## Relationships
 
-## Assumptions: ask for propositions
+Relationships are first-class semantic links between Profiles.
 
-Experiences should request the smallest proposition they need.
+~~~csharp
+company.AddRelationship(
+    new ProfileRelationship(
+        company.Id,
+        person.Id,
+        "employs"));
+~~~
+
+The package does not dictate the complete relationship vocabulary. Your application can define relationships appropriate to its domain.
+
+This means a consumer can describe:
 
 ~~~text
-Assumption:
-    Age >= 21
+Company
+  |
+  +-- employs --> Individual
+  +-- owns -----> Experience
+  +-- operates --> Group
+  +-- publishes -> products / services
+~~~
 
-Result:
+Profiles supplies the entity boundary. Other Workshop packages can build their own domain models on top of it.
+
+## Assumptions instead of unnecessary disclosure
+
+An Experience should often ask for a proposition rather than raw personal data.
+
+~~~text
+Experience asks:
+
+    Age >= 21?
+
+Profiles returns:
+
     Satisfied
     NotSatisfied
     Unknown
 ~~~
 
-Unknown is deliberately different from NotSatisfied. A user withholding a claim is not automatically a failed requirement.
+Unknown is deliberately distinct from NotSatisfied.
 
-The core also does not pretend that an arbitrary self-entered claim is authoritative for legally consequential requirements. Verification providers can be added above this domain.
+Missing information is not automatically evidence that a proposition is false.
 
-## Public-data reporting
+The default resolver is intentionally small. Trusted verification providers can be layered above the domain for claims that require stronger authority.
 
-ProfilePublicDataReporter lets an owner inspect what is currently public without returning private claim values.
+## Canonical identity and public personas
 
-The initial report exposes:
-
-- public attribute keys
-- whether display name is public
-- whether a public/default avatar exists
-
-## Who accessed my data?
-
-ProfileAccessRecord identifies:
+Profiles supports private links between profiles.
 
 ~~~text
-Profile ID
-Observer ID
-Access timestamp
-~~~
-
-This lets an owning system maintain an owner-visible access history.
-
-The core intentionally does not add the observer's private reason or unrelated information about that observer.
-
-**The profile owner can know who accessed their data without turning that access record into permission to inspect the accessor's private life.**
-
-## Communication and spatial interaction
-
-The same authorization boundary can eventually govern:
-
-~~~text
-Profile relationship
+Canonical identity
        |
-       +-- visual representation
-       +-- audio communication
-       +-- messaging
-       +-- presence
-       +-- interaction
+       +---- personal profile
+       +---- publisher profile
+       +---- commercial profile
+       +---- experience identity
 ~~~
 
-An experience can then use proximity and level-of-detail rules to connect sound streams or other interaction channels.
+A creator can therefore publish under a chosen persona without requiring ordinary observers to learn the canonical identity behind it.
 
-Profiles does not become a renderer or communications transport. It answers the more fundamental question:
+ProfileIdentityLinkStore is for trusted identity infrastructure. The link is not emitted by Profile.RepresentTo.
 
-> **Is this observer permitted to receive this representation or interaction?**
+## Access transparency
 
-## Privacy by design
-
-Profiles is designed to make privacy-preserving behavior natural:
-
-- data minimization
-- least privilege
-- micro-data disclosure
-- user-controlled groups
-- explicit exclusion
-- observer-specific representations
-- proposition-level assumptions
-- auditable access events
-- configurable retention
-- jurisdiction-aware policy layers
-
-The package does not claim to make an application legally compliant. California, EU, and other requirements belong in policy and enforcement layers.
-
-## No database dependency
-
-There is deliberately no Entity Framework, SQL, HTTP, or cloud dependency in the core.
+The domain includes a deliberately small access event:
 
 ~~~text
 Profile
- ├─ micro-claims
- ├─ disclosure rules
- ├─ groups
- ├─ relationships
- ├─ exclusions
- └─ observer-specific representations
+Observer
+Timestamp
 ~~~
 
-A future persistence layer may use memory, files, object storage, a Warehouse adapter, or another system. Profiles does not dictate that choice.
+An owning application can send that event to its own audit or persistence system through IProfileAccessRecorder.
 
-## Economic boundary
+Transparency about who accessed a profile does not automatically grant permission to inspect the accessor's private life.
 
-Profiles does not hard-code a platform fee.
+## Public exposure reporting
 
-A future marketplace can separately model requests, purpose, price, consent, settlement, revocation, and revenue allocation.
+ProfilePublicDataReporter lets an owner inspect exposure metadata without copying private values into the report.
 
-The user's explicit decision to license information remains distinct from ordinary profile disclosure.
+It answers questions such as:
 
-## Architecture
+- Which attribute keys are public?
+- Is the display name public?
+- Is a public avatar selected?
+
+## Data licensing is separate from disclosure
+
+Profiles deliberately distinguishes:
 
 ~~~text
-                         FSM_API
-                            |
-                         FSM_COS
-                            |
-              +-------------+-------------+
-              |                           |
-          Profiles                    Warehouse
-              |                           |
-       identity + policy             resources/data
-              |                           |
-              +-------------+-------------+
-                            |
-                       Authorization
-                            |
-                       Experiences
-                            |
-             +--------------+--------------+
-             |              |              |
-            Web           Mobile       Immersive
+Disclosure
+    -> an observer may receive information.
+
+Verification
+    -> a proposition can be established.
+
+Licensing
+    -> the owner explicitly permits an economic use.
 ~~~
 
-Profiles is the identity/data sovereignty boundary. Warehouse can be a persistence/resource boundary. Authorization connects the two.
+ProfileDataLicensePolicy is an opt-in allow-list for attributes.
 
-## Initial API
+It does **not**:
 
-- Profile
-- ProfileId
-- ProfileEntityKind
-- ProfileAttributeDefinition
-- ProfileClaim
-- DisclosureRule
-- DisclosureScope
-- ProfileGroup
-- ProfileRelationship
-- ProfileRepresentation
-- ProfileIdentityLink
-- ProfileIdentityLinkStore
-- ProfileDataLicensePolicy
-- ProfilePublicDataReport
-- AssumptionDefinition
-- AssumptionResult
-- IProfileAssumptionResolver
-- ProfileAccessRecord
-- IProfileAccessRecorder
+- create a sale
+- identify a buyer
+- set a price
+- execute payment
+- settle revenue
+- determine legal consent
+- encode a platform fee
 
-## What comes next
+Those belong to marketplace, transaction, policy, and legal layers outside this package.
 
-1. Richer public-data reports.
-2. Persistent owner-visible access history.
-3. Relationship-aware disclosure rules.
-4. Communication authorization.
-5. Named representation policies.
-6. Trusted verification providers.
-7. Jurisdiction policy packages.
-8. Explicit data licensing and marketplace settlement.
-9. Warehouse persistence/authorization adapter.
-10. FSM integration where stateful profile workflows benefit from FSM_API.
+## Provider-neutral by design
 
-> **The profile owns the data boundary. The observer receives only the representation they are permitted to receive.**
+Profiles has no required dependency on:
+
+- Entity Framework
+- SQL
+- HTTP
+- cloud storage
+- authentication SDKs
+- payment SDKs
+- rendering frameworks
+
+A consuming application can persist Profiles in memory, files, object storage, a service, Warehouse adapters, or another system.
+
+~~~text
+                 Authentication
+                        |
+                        v
+                  Identity layer
+                        |
+                        v
+                   PROFILES
+                  /    |    \
+                 /     |     \
+           Storage   Policy  Verification
+                 \     |     /
+                  \    |    /
+                        v
+                   EXPERIENCE
+                        |
+              +---------+---------+
+              |                   |
+       Representation        Assumption
+              |                   |
+          Renderer          App logic
+~~~
+
+## How to consume it
+
+~~~bash
+dotnet add package TheSingularityWorkshop.Profiles
+~~~
+
+Start with:
+
+- [Consuming Profiles](docs/CONSUMING.md)
+- [How-to guide](docs/HOW_TO.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Theory](docs/THEORY.md)
+- [Privacy model](docs/PRIVACY.md)
+- [API map](docs/API.md)
+
+## Package quality boundary
+
+The package is intentionally domain-focused.
+
+It is **not** a legal compliance certificate, identity provider, authentication service, financial service, or guarantee that a consuming application's policies satisfy any jurisdiction.
+
+Those decisions belong to the application and its qualified professional and infrastructure layers.
+
+## NuGet readiness
+
+- Target framework: .NET 8
+- XML documentation enabled
+- Warnings treated as errors
+- Package README included
+- MIT package license metadata
+- NuGet Trusted Publishing prepared for TrentBest/Profiles
+- Package ID: TheSingularityWorkshop.Profiles
+- Current version: 0.1.0-alpha.1
+
+Publication remains an explicit release action.
 
 ---
-
-**Package:** TheSingularityWorkshop.Profiles  
-**Version:** 0.1.0-alpha.1  
-**Target:** .NET 8  
-**Release:** source only; NuGet publication requires explicit review.
 
 ![Trent Best](https://avatars.githubusercontent.com/u/16405167?v=4&size=200)
 
 [GitHub — Profiles](https://github.com/TrentBest/Profiles)
 
 **The Singularity Workshop — Tools for the curious, the bold, and the systemically inclined.**
-
-
-## Sovereign identity and publisher personas
-
-A person does not have to publish their canonical identity merely because they participate in the ecosystem.
-
-The same underlying owner can maintain separate profiles:
-
-~~~text
-Canonical profile
-      |
-      +---- personal representation
-      +---- publisher profile
-      +---- commercial persona
-      +---- game identity
-~~~
-
-ProfileIdentityLink records these relationships for trusted identity infrastructure. Ordinary observers do not receive the link, and a representation does not reveal that two profiles belong to the same underlying owner.
-
-A valid legal process may require disclosure of an otherwise protected identity. That is an external authority and jurisdiction boundary; the core does not decide whether a request is legally sufficient.
-
-This separation lets a publisher create work under the identity they choose while the Workshop can retain the private linkage needed for account integrity, safety, and lawful obligations.
-
-## Economic boundary
-
-Profiles does not assume that a user wants to sell anything.
-
-**Ordinary disclosure is never treated as permission to sell.**
-
-ProfileDataLicensePolicy can explicitly enable licensing and identify which micro-data attributes are eligible. A separate marketplace/transaction layer must handle buyer, purpose, price, consent, settlement, expiry, and revocation.
-
-The Workshop's economic model is a service-sustainability concern rather than ownership of the user's data. The platform allocation is not hard-coded into Profiles.
-
-> **If you choose to license your data, you decide what is offered. The Workshop takes only the platform share agreed as the cost of keeping the machinery available.**
-
-The user's data remains theirs.
