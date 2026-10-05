@@ -1,6 +1,6 @@
 namespace TheSingularityWorkshop.Profiles;
 
-/// <summary>Describes the profile data currently marked publicly disclosable.</summary>
+/// <summary>Describes profile data currently marked publicly disclosable.</summary>
 public sealed record ProfilePublicDataReport(
     ProfileId ProfileId,
     IReadOnlyList<string> PublicAttributes,
@@ -14,11 +14,9 @@ public static class ProfilePublicDataReporter
     public static ProfilePublicDataReport Create(Profile profile)
     {
         ArgumentNullException.ThrowIfNull(profile);
-
-        var publicAttributes = profile.PublicAttributeKeys.ToArray();
         return new ProfilePublicDataReport(
             profile.Id,
-            publicAttributes,
+            profile.PublicAttributeKeys.ToArray(),
             profile.IsDisplayNamePublic,
             profile.HasPublicAvatar);
     }
