@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="650" viewBox="0 0 1200 650">
+  <rect width="1200" height="650" fill="white"/>
+  <text x="600" y="55" text-anchor="middle" font-family="sans-serif" font-size="32" font-weight="bold">The Singularity Workshop — Profiles</text>
+  <text x="600" y="88" text-anchor="middle" font-family="sans-serif" font-size="18">Entity → Information → Policy → Observer-specific representation</text>
+  <rect x="60" y="145" width="250" height="125" rx="18" fill="#f3f3f3" stroke="#222" stroke-width="3"/>
+  <text x="185" y="185" text-anchor="middle" font-family="sans-serif" font-size="24" font-weight="bold">ENTITY</text>
+  <text x="185" y="220" text-anchor="middle" font-family="sans-serif" font-size="17">Individual · Company</text>
+  <text x="185" y="245" text-anchor="middle" font-family="sans-serif" font-size="17">Group · Organization</text>
+  <rect x="475" y="145" width="250" height="125" rx="18" fill="#f3f3f3" stroke="#222" stroke-width="3"/>
+  <text x="600" y="185" text-anchor="middle" font-family="sans-serif" font-size="24" font-weight="bold">PROFILE</text>
+  <text x="600" y="220" text-anchor="middle" font-family="sans-serif" font-size="17">Claims · Groups · Relationships</text>
+  <text x="600" y="245" text-anchor="middle" font-family="sans-serif" font-size="17">Identity · Sovereignty</text>
+  <rect x="890" y="145" width="250" height="125" rx="18" fill="#f3f3f3" stroke="#222" stroke-width="3"/>
+  <text x="1015" y="185" text-anchor="middle" font-family="sans-serif" font-size="24" font-weight="bold">POLICY</text>
+  <text x="1015" y="220" text-anchor="middle" font-family="sans-serif" font-size="17">Private · Public · Group</text>
+  <text x="1015" y="245" text-anchor="middle" font-family="sans-serif" font-size="17">Explicit · Exclusion</text>
+  <path d="M310 207 L475 207" stroke="#222" stroke-width="4" marker-end="url(#arrow)"/>
+  <path d="M725 207 L890 207" stroke="#222" stroke-width="4" marker-end="url(#arrow)"/>
+  <rect x="300" y="390" width="600" height="150" rx="22" fill="#f3f3f3" stroke="#222" stroke-width="4"/>
+  <text x="600" y="435" text-anchor="middle" font-family="sans-serif" font-size="27" font-weight="bold">OBSERVER-SPECIFIC REPRESENTATION</text>
+  <text x="600" y="475" text-anchor="middle" font-family="sans-serif" font-size="18">display name · avatar · permitted claims</text>
+  <text x="600" y="510" text-anchor="middle" font-family="sans-serif" font-size="18">different observer → different permitted projection</text>
+  <path d="M1015 270 C1015 330 850 350 760 390" fill="none" stroke="#222" stroke-width="4" marker-end="url(#arrow)"/>
+  <path d="M600 270 L600 390" stroke="#222" stroke-width="4" marker-end="url(#arrow)"/>
+  <text x="600" y="595" text-anchor="middle" font-family="sans-serif" font-size="18">Profiles is a semantic boundary, not a database, renderer, authentication provider, or payment system.</text>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#222"/>
+    </marker>
+  </defs>
+</svg>
