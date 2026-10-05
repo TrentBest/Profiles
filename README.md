@@ -203,6 +203,9 @@ Profiles is the identity/data sovereignty boundary. Warehouse can be a persisten
 - ProfileGroup
 - ProfileRelationship
 - ProfileRepresentation
+- ProfileIdentityLink
+- ProfileIdentityLinkStore
+- ProfileDataLicensePolicy
 - ProfilePublicDataReport
 - AssumptionDefinition
 - AssumptionResult
