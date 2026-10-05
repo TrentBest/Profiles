@@ -40,6 +40,18 @@ public sealed class Profile
     /// <summary>Profiles excluded by this profile.</summary>
     public IReadOnlySet<ProfileId> ExcludedEntities => _excluded;
 
+    /// <summary>Attribute keys currently marked public.</summary>
+    public IEnumerable<string> PublicAttributeKeys => _rules.Values
+        .Where(rule => rule.Scope == DisclosureScope.Public)
+        .Select(rule => rule.AttributeKey);
+
+    /// <summary>Whether the display name is public.</summary>
+    public bool IsDisplayNamePublic =>
+        _rules.TryGetValue("display-name", out var rule) && rule.Scope == DisclosureScope.Public;
+
+    /// <summary>Whether a default public avatar has been selected.</summary>
+    public bool HasPublicAvatar => _avatars.ContainsKey(ProfileAvatarKey);
+
     /// <summary>Defines or replaces a micro-data claim.</summary>
     public void SetClaim(ProfileClaim claim)
     {
@@ -83,6 +95,13 @@ public sealed class Profile
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(avatar);
         _avatars[observer] = avatar;
+    }
+
+    /// <summary>Selects the public/default avatar.</summary>
+    public void SetPublicAvatar(string avatar)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(avatar);
+        _avatars[ProfileAvatarKey] = avatar;
     }
 
     /// <summary>Selects an avatar for members of a group.</summary>
