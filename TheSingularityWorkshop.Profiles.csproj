@@ -6,8 +6,8 @@
     <Version>0.1.0-alpha.1</Version>
     <Authors>Trent Best</Authors>
     <Company>The Singularity Workshop</Company>
-    <Description>Privacy-first profile, relationship, disclosure, representation, and assumption primitives.</Description>
-    <PackageTags>profiles;privacy;identity;disclosure;relationships;assumptions;digital-identity</PackageTags>
+    <Description>Provider-neutral profile and entity abstractions for identity, micro-data, relationships, disclosure, representations, assumptions, and data sovereignty.</Description>
+    <PackageTags>profiles;identity;privacy;entity;individual;company;group;organization;experience;agent;disclosure;relationships;representation;assumptions;sovereignty</PackageTags>
     <RepositoryUrl>https://github.com/TrentBest/Profiles</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
