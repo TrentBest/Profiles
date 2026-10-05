@@ -6,7 +6,7 @@ public sealed class Profile
 {
     private readonly Dictionary<string, ProfileClaim> _claims = new(StringComparer.Ordinal);
     private readonly Dictionary<string, DisclosureRule> _rules = new(StringComparer.Ordinal);
-    private readonly Dictionary<ProfileId, string> _avatars = [];
+    private readonly Dictionary<string, string> _avatars = new(StringComparer.Ordinal);
     private readonly Dictionary<string, ProfileGroup> _groups = new(StringComparer.Ordinal);
     private readonly List<ProfileRelationship> _relationships = [];
     private readonly HashSet<ProfileId> _excluded = [];
@@ -94,7 +94,7 @@ public sealed class Profile
     public void SetAvatar(ProfileId observer, string avatar)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(avatar);
-        _avatars[observer] = avatar;
+        _avatars[ObserverAvatarKey(observer)] = avatar;
     }
 
     /// <summary>Selects the public/default avatar.</summary>
@@ -139,7 +139,7 @@ public sealed class Profile
 
     private string ResolveAvatar(ProfileId observer)
     {
-        if (_avatars.TryGetValue(observer, out var direct)) return direct;
+        if (_avatars.TryGetValue(ObserverAvatarKey(observer), out var direct)) return direct;
 
         foreach (var group in _groups.Values)
         {
@@ -153,6 +153,7 @@ public sealed class Profile
     private bool IsDisplayNameVisible(ProfileId observer, IReadOnlySet<ProfileId> observerGroups)
         => _rules.TryGetValue("display-name", out var rule) && rule.Allows(observer, observerGroups);
 
+    private static string ObserverAvatarKey(ProfileId observer) => $"observer:{observer.Value:D}";
     private static string GroupAvatarKey(string groupName) => $"group:{groupName}";
     private const string ProfileAvatarKey = "profile";
 }
