@@ -25,7 +25,6 @@ public sealed class ProfileTests
         var profile = CreateProfile();
         var friend = ProfileId.New();
         var stranger = ProfileId.New();
-
         var friends = profile.DefineGroup("Friends");
         friends.Add(friend);
         profile.SetGroupAvatar("Friends", "cheshire-cat");
@@ -43,9 +42,7 @@ public sealed class ProfileTests
         profile.SetClaim(new ProfileClaim(age, 37));
         profile.SetDisclosureRule(new DisclosureRule("age", DisclosureScope.Private));
 
-        var representation = profile.RepresentTo(ProfileId.New());
-
-        Assert.DoesNotContain("age", representation.Claims.Keys);
+        Assert.DoesNotContain("age", profile.RepresentTo(ProfileId.New()).Claims.Keys);
     }
 
     [Fact]
@@ -81,6 +78,23 @@ public sealed class ProfileTests
     }
 
     [Fact]
+    public void PublicDataReportDoesNotExposeValues()
+    {
+        var profile = CreateProfile();
+        var age = ProfileAttributeDefinition.Create("age", typeof(int));
+        profile.SetClaim(new ProfileClaim(age, 37));
+        profile.SetDisclosureRule(new DisclosureRule("age", DisclosureScope.Public));
+        profile.SetPublicAvatar("fluffy-ape");
+
+        var report = ProfilePublicDataReporter.Create(profile);
+
+        Assert.Equal(profile.Id, report.ProfileId);
+        Assert.Contains("age", report.PublicAttributes);
+        Assert.True(report.DisplayNameIsPublic);
+        Assert.True(report.HasPublicAvatar);
+    }
+
+    [Fact]
     public void AccessRecordIdentifiesObserverWithoutReason()
     {
         var profile = CreateProfile();
@@ -95,7 +109,7 @@ public sealed class ProfileTests
     {
         var profile = new Profile(ProfileEntityKind.Individual, "Example");
         profile.SetDisclosureRule(new DisclosureRule("display-name", DisclosureScope.Public));
-        profile.SetAvatar(profile.Id, "default");
+        profile.SetPublicAvatar("default");
         return profile;
     }
 }
