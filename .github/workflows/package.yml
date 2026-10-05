@@ -1,0 +1,37 @@
+name: NuGet Package
+
+on:
+  workflow_dispatch:
+
+jobs:
+  package:
+    runs-on: ubuntu-24.04
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.x
+
+      - name: Restore
+        run: dotnet restore TheSingularityWorkshop.Profiles.csproj
+
+      - name: Build
+        run: dotnet build TheSingularityWorkshop.Profiles.csproj --configuration Release --no-restore
+
+      - name: Pack
+        run: dotnet pack TheSingularityWorkshop.Profiles.csproj --configuration Release --no-build --output ./artifacts
+
+      - name: Authenticate with NuGet Trusted Publishing
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: TheSingularityWorkshop
+
+      - name: Publish package
+        run: dotnet nuget push "./artifacts/*.nupkg" --source "https://api.nuget.org/v3/index.json" --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" --skip-duplicate
