@@ -237,3 +237,39 @@ Profiles is the identity/data sovereignty boundary. Warehouse can be a persisten
 [GitHub — Profiles](https://github.com/TrentBest/Profiles)
 
 **The Singularity Workshop — Tools for the curious, the bold, and the systemically inclined.**
+
+
+## Sovereign identity and publisher personas
+
+A person does not have to publish their canonical identity merely because they participate in the ecosystem.
+
+The same underlying owner can maintain separate profiles:
+
+~~~text
+Canonical profile
+      |
+      +---- personal representation
+      +---- publisher profile
+      +---- commercial persona
+      +---- game identity
+~~~
+
+ProfileIdentityLink records these relationships for trusted identity infrastructure. Ordinary observers do not receive the link, and a representation does not reveal that two profiles belong to the same underlying owner.
+
+A valid legal process may require disclosure of an otherwise protected identity. That is an external authority and jurisdiction boundary; the core does not decide whether a request is legally sufficient.
+
+This separation lets a publisher create work under the identity they choose while the Workshop can retain the private linkage needed for account integrity, safety, and lawful obligations.
+
+## Economic boundary
+
+Profiles does not assume that a user wants to sell anything.
+
+**Ordinary disclosure is never treated as permission to sell.**
+
+ProfileDataLicensePolicy can explicitly enable licensing and identify which micro-data attributes are eligible. A separate marketplace/transaction layer must handle buyer, purpose, price, consent, settlement, expiry, and revocation.
+
+The Workshop's economic model is a service-sustainability concern rather than ownership of the user's data. The platform allocation is not hard-coded into Profiles.
+
+> **If you choose to license your data, you decide what is offered. The Workshop takes only the platform share agreed as the cost of keeping the machinery available.**
+
+The user's data remains theirs.
