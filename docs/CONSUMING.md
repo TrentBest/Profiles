@@ -1,5 +1,7 @@
 # Consuming Profiles
 
+This guide helps application developers add Profiles to an existing .NET 8 application and choose the right boundary for each responsibility. The examples are checked against the current source shape, but have not been independently compiled as a single tutorial project.
+
 ## What this package gives you
 
 **TheSingularityWorkshop.Profiles** gives an application a small, provider-neutral abstraction for describing **entities and the information those entities choose to expose**.
@@ -22,21 +24,19 @@ Your application decides what persistence, authentication, networking, UI, or bu
 
 ## Install
 
+Add the package to a .NET 8 project:
+
 ~~~bash
 dotnet add package TheSingularityWorkshop.Profiles
 ~~~
 
-Or:
-
-~~~xml
-<PackageReference Include="TheSingularityWorkshop.Profiles" Version="0.1.0-alpha.1" />
-~~~
-
-The package currently targets .NET 8.
+The current source package version is `0.1.0-alpha.1`. Confirm package availability on NuGet before depending on that version; repository source and a published package are not the same thing.
 
 ## Create an entity profile
 
 ~~~csharp
+using TheSingularityWorkshop.Profiles;
+
 var company = new Profile(
     ProfileEntityKind.Company,
     "Dragonforge Industries");
@@ -50,7 +50,7 @@ var player = new Profile(
     "Ari");
 ~~~
 
-All three are the same domain abstraction. Their surrounding application behavior can be completely different.
+All three use the same domain abstraction. Their surrounding application behavior can be completely different.
 
 ## Add micro-data
 
@@ -69,7 +69,11 @@ The claim exists in the profile, but that does not make it public.
 
 ## Decide what an observer may see
 
+Create or obtain an observer ID from your application's identity layer. The example uses a fresh ID only to demonstrate the API:
+
 ~~~csharp
+var observerId = ProfileId.New();
+
 player.SetDisclosureRule(
     new DisclosureRule("language", DisclosureScope.Public));
 
@@ -78,19 +82,17 @@ var representation = player.RepresentTo(observerId);
 
 Available scopes are Private, Public, Group, and Explicit.
 
-The important boundary is:
-
 ~~~text
-Profile
-  |
-  | policy
-  v
+Profile (owned domain information)
+   |
+   | disclosure policy + observer
+   v
 ProfileRepresentation
-  |
-  +-- only information the observer may receive
+   |
+   +-- observer-facing projection
 ~~~
 
-Do not hand the complete Profile to an untrusted renderer, plugin, or remote application merely because it needs a representation.
+Do not hand the complete Profile to an untrusted renderer, plugin, or remote application merely because it needs a representation. The representation is the intended handoff object; the consuming application remains responsible for enforcing its own trust and transport boundaries.
 
 ## Model relationships
 
@@ -102,38 +104,39 @@ company.AddRelationship(
         "employs"));
 ~~~
 
-The package does not prescribe every relationship vocabulary. Your application can define the relationship types appropriate to its domain.
+The relationship subject must be the profile receiving the relationship. The package does not prescribe every relationship vocabulary; your application can define relationship types appropriate to its domain.
 
 ## Groups
 
-Groups can control disclosure and representation.
+Groups can participate in disclosure and avatar selection. The observer's group memberships must come from your application, not from an untrusted claim supplied by the observer.
 
 ~~~csharp
 var friends = player.DefineGroup("Friends");
+var friendId = ProfileId.New();
 friends.Add(friendId);
 
 player.SetGroupAvatar("Friends", "cheshire-cat");
 ~~~
 
-The same entity can therefore have different representations for different audiences.
+When requesting a representation for a member, pass the relevant group IDs as the `observerGroups` argument to `RepresentTo`. Group rules use group IDs as their allowed audience.
 
 ## Assumptions
 
-An Experience should ask for the smallest proposition it needs.
+An Experience can ask whether a proposition is satisfied without making every consumer handle the underlying value directly. This example assumes the profile has an integer `age` claim and uses a guarded lookup:
 
 ~~~csharp
 var adult = new AssumptionDefinition(
     "age-21-plus",
     "The profile represents someone aged 21 or older.",
-    p => (int)p.Claims["age"].Value >= 21);
+    p => p.Claims.TryGetValue("age", out var claim)
+         && claim.Value is int age
+         && age >= 21);
 
 var result = new ProfileAssumptionResolver()
     .Resolve(player, adult);
 ~~~
 
-Possible outcomes are Satisfied, NotSatisfied, and Unknown.
-
-Unknown matters. Missing information is not automatically evidence that a proposition is false.
+Possible outcomes are Satisfied, NotSatisfied, and Unknown. If the claim is absent, the predicate does not establish adulthood; the resolver's unknown-result behavior is part of the current domain contract.
 
 For sensitive or legally consequential propositions, put trusted verification above the Profiles domain. The core does not turn self-declared information into legal authority.
 
@@ -150,9 +153,7 @@ Canonical Profile
        +--> experience identity
 ~~~
 
-Use ProfileIdentityLink and ProfileIdentityLinkStore for trusted infrastructure that needs to know about those private relationships.
-
-Ordinary representations do not emit the link.
+Use `ProfileIdentityLink` and `ProfileIdentityLinkStore` in trusted infrastructure that needs to know about those private relationships. Ordinary representations do not emit the link.
 
 ## Data licensing
 
@@ -167,39 +168,24 @@ var policy = new ProfileDataLicensePolicy
 policy.Allow("language");
 ~~~
 
-This says that the owner has opted into licensing that attribute. It does not create a sale, buyer, price, payment, or legal authorization.
-
-A marketplace or transaction layer must handle those concerns.
+This says that the owner has opted into licensing that attribute. It does not create a sale, buyer, price, payment, or legal authorization. A marketplace or transaction layer must handle those concerns.
 
 ## Access records
 
-Applications can record access without making Profiles responsible for persistence:
+Applications can create an access event without making Profiles responsible for persistence:
 
 ~~~csharp
 var access = new ProfileAccessRecord(
     player.Id,
     observerId,
     DateTimeOffset.UtcNow);
-
-recorder.Record(access);
 ~~~
 
-IProfileAccessRecorder is an integration boundary. Store the event wherever the owning application requires.
+Pass the record to your application's implementation of `IProfileAccessRecorder`, and persist it according to your application's retention and access policy. Profiles defines the boundary; it does not supply an audit database.
 
 ## Persistence
 
-Profiles intentionally has no database dependency.
-
-You can put the domain objects behind:
-
-- an in-memory store
-- files
-- object storage
-- a service
-- a Warehouse adapter
-- another persistence system
-
-The choice belongs to the consuming application.
+Profiles intentionally has no database dependency. You can put the domain objects behind an in-memory store, files, object storage, a service, a Warehouse adapter, or another persistence system. The choice belongs to the consuming application.
 
 ## Authentication
 
@@ -218,31 +204,15 @@ Profiles identity boundary
 Profile / representation / policy
 ~~~
 
-Credentials, tokens, provider SDKs, and authentication protocols belong outside this package.
+Credentials, tokens, provider SDKs, and authentication protocols belong outside this package. A Profile ID is a domain identifier, not proof that a caller owns that identity.
 
 ## Privacy boundary
 
-Treat Profile as the owner's domain object and ProfileRepresentation as the observer-facing projection.
-
-That separation makes it possible for an application to render, transmit, or cache a representation without automatically giving that consumer the complete underlying profile.
+Treat Profile as the owner's domain object and ProfileRepresentation as the observer-facing projection. This separation makes it possible for an application to render, transmit, or cache a representation without automatically giving that consumer the complete underlying profile. It does not replace authentication, authorization, secure transport, or application-level threat modelling.
 
 ## What Profiles does not do
 
-Profiles is intentionally not:
-
-- a user database
-- an authentication provider
-- an identity provider
-- a payment processor
-- a marketplace
-- an accounting system
-- a renderer
-- a communications transport
-- a legal compliance engine
-- a jurisdiction engine
-- a cloud persistence provider
-
-Those are integration boundaries above or beside the domain package.
+Profiles is intentionally not a user database, authentication provider, identity provider, payment processor, marketplace, accounting system, renderer, communications transport, legal compliance engine, jurisdiction engine, or cloud persistence provider. Those are integration boundaries above or beside the domain package.
 
 ## Recommended integration pattern
 
@@ -253,31 +223,36 @@ Those are integration boundaries above or beside the domain package.
               Identity layer
                     |
                     v
-             +-------------+
-             |   Profiles  |
-             +-------------+
-              /     |     \
-             /      |      \
-       Storage   Policy   Verification
-          |         |          |
-          +---------+----------+
+             +--------------+
+             |   Profiles   |
+             +--------------+
+              /     |      \
+             /      |       \
+        Storage   Policy   Verification
+           |        |          |
+           +--------+----------+
                     |
                     v
-              Experience
+                Experience
                     |
           +---------+---------+
           |                   |
-      Representation       Assumption
+     Representation       Assumption
           |                   |
-        Renderer          Experience logic
+       Renderer         Experience logic
 ~~~
 
 Keep the Profiles package small. Add application-specific adapters rather than turning the domain package into the application.
 
 ## Further reading
 
-- Architecture
-- Privacy model
-- Theory
-- How-to guide
-- API map
+- [How-to guide](HOW_TO.md) — task-oriented recipes for common profile operations.
+- [Theory](THEORY.md) — the mental model behind entity abstraction, micro-data, and observer-specific disclosure.
+- [Architecture](ARCHITECTURE.md) — ownership, dependency direction, and integration seams.
+- [Privacy model](PRIVACY.md) — the privacy principles represented by the domain, not a legal-compliance guarantee.
+- [API map](API.md) — a conceptual map of public types; XML documentation remains authoritative for member details.
+- [Publishing checklist](PUBLISHING.md) — package metadata and the explicit release boundary.
+
+---
+
+**The Singularity Workshop — Tools for the curious, the bold, and the systemically inclined.**
