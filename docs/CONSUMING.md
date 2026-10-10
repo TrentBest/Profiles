@@ -187,7 +187,18 @@ Profiles intentionally has no database dependency. You can put the domain object
 
 ## Authentication
 
-Profiles is not an authentication provider.
+Profiles is not an authentication provider. It now provides a small contract for mapping a profile to a provider-qualified external identity, but the contract does not authenticate the external principal or validate ownership.
+
+~~~csharp
+var profile = new Profile(ProfileEntityKind.Individual, "Ari");
+var externalIdentity = new ExternalIdentityReference(
+    "https://identity.example.test",
+    "provider-subject-123");
+
+var binding = new ProfileExternalIdentityBinding(profile.Id, externalIdentity);
+~~~
+
+Create a binding only after trusted authentication integration has established the external principal and authorized the mapping. Store and protect it in infrastructure you control. Do not use an email address as a universal identity key, and do not treat a binding as permission to access a profile or perform an action.
 
 ~~~text
 Authentication credentials
@@ -241,6 +252,10 @@ Profiles is intentionally not a user database, authentication provider, identity
 ~~~
 
 Keep the Profiles package small. Add application-specific adapters rather than turning the domain package into the application.
+
+## Composing with HeadlessAi
+
+A host may use [TheSingularityWorkshop.HeadlessAi](https://github.com/TrentBest/TheSingularityWorkshop.HeadlessAi) for headless agent execution and Profiles for domain identity or observer-specific persona representation. Keep the packages independently usable: HeadlessAi core need not depend on Profiles. The host can pass only the profile representation needed for a task, then separately enforce tool access, data access, and other permissions. Profile claims are descriptive input, not authorization grants.
 
 ## Further reading
 
