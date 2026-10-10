@@ -1,5 +1,11 @@
 # ✳️ 00 The Singularity Workshop — Profiles
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![NuGet version](https://img.shields.io/nuget/v/TheSingularityWorkshop.Profiles?style=flat-square&logo=nuget&logoColor=white)](https://www.nuget.org/packages/TheSingularityWorkshop.Profiles)
+[![NuGet downloads](https://img.shields.io/nuget/dt/TheSingularityWorkshop.Profiles?logo=nuget&style=flat-square)](https://www.nuget.org/packages/TheSingularityWorkshop.Profiles)
+
+[![Build Status](https://img.shields.io/github/actions/workflow/status/TrentBest/Profiles/dotnet-tests.yml?branch=development&style=flat-square&logo=github)](https://github.com/TrentBest/Profiles/actions/workflows/dotnet-tests.yml)
+[![Last commit](https://img.shields.io/github/last-commit/TrentBest/Profiles/development)](https://github.com/TrentBest/Profiles/commits/development)
 [![Code Coverage](https://codecov.io/gh/TrentBest/Profiles/graph/badge.svg)](https://codecov.io/gh/TrentBest/Profiles)
 
 ![Profiles architecture: a Profile's owned information is transformed by disclosure policy into an observer-specific representation.](docs/images/profiles-architecture.svg)
@@ -135,7 +141,7 @@ Profiles is designed to remain independently useful. Workshop applications may u
 - **Target framework:** .NET 8
 - **Current source package version:** 0.1.0-alpha.1 (confirm the published feed before relying on package availability)
 - XML documentation is enabled; warnings are treated as errors.
-- The Codecov badge links to the repository's coverage reporting.
+- The README includes live links for license, NuGet version/downloads, build status, last commit, and Codecov coverage.
 - The package is not a legal-compliance certificate or a guarantee that a consuming application's policies satisfy any jurisdiction.
 
 NuGet publication remains an explicit release action; documentation or CI changes do not authorize a release.
