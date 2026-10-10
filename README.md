@@ -4,11 +4,11 @@
 [![NuGet version](https://img.shields.io/nuget/v/TheSingularityWorkshop.Profiles?style=flat-square&logo=nuget&logoColor=white)](https://www.nuget.org/packages/TheSingularityWorkshop.Profiles)
 [![NuGet downloads](https://img.shields.io/nuget/dt/TheSingularityWorkshop.Profiles?logo=nuget&style=flat-square)](https://www.nuget.org/packages/TheSingularityWorkshop.Profiles)
 
-[![Build Status](https://img.shields.io/github/actions/workflow/status/TrentBest/Profiles/dotnet-tests.yml?branch=development&style=flat-square&logo=github)](https://github.com/TrentBest/Profiles/actions/workflows/dotnet-tests.yml)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/TrentBest/Profiles/build.yml?branch=development&style=flat-square&logo=github)](https://github.com/TrentBest/Profiles/actions/workflows/build.yml)
 [![Last commit](https://img.shields.io/github/last-commit/TrentBest/Profiles/development)](https://github.com/TrentBest/Profiles/commits/development)
 [![Code Coverage](https://codecov.io/gh/TrentBest/Profiles/graph/badge.svg)](https://codecov.io/gh/TrentBest/Profiles)
 
-![Profiles architecture: a Profile's owned information is transformed by disclosure policy into an observer-specific representation.](docs/images/profiles-architecture.svg)
+![Profiles architecture: a Profile's owned information is transformed by disclosure policy into an observer-specific representation.](https://raw.githubusercontent.com/TrentBest/Profiles/development/docs/images/profiles-architecture.svg)
 
 *The same entity can be represented differently to different observers—without confusing identity with what each observer is allowed to see.*
 
@@ -104,13 +104,13 @@ In plain language: create an entity profile, add one small claim, declare the au
 
 ## 🟪 05 Documentation and theory
 
-- [Consuming Profiles](docs/CONSUMING.md) — installation, common tasks, and examples for integrating the package into an application.
-- [How-to guide](docs/HOW_TO.md) — task-oriented recipes for common profile operations.
-- [Theory](docs/THEORY.md) — the mental model behind entity abstraction, micro-data, identity sovereignty, and observer-specific disclosure.
-- [Architecture](docs/ARCHITECTURE.md) — responsibility boundaries, dependency direction, and the package's integration seams.
-- [Privacy model](docs/PRIVACY.md) — the privacy principles and distinctions the domain is designed to represent; not a legal-compliance guarantee.
-- [API map](docs/API.md) — a conceptual guide to the public types; XML API documentation remains authoritative for member-level details.
-- [Publishing and package metadata](docs/PUBLISHING.md) — package/release preparation information.
+- [Consuming Profiles](https://github.com/TrentBest/Profiles/blob/development/docs/CONSUMING.md) — installation, common tasks, and examples for integrating the package into an application.
+- [How-to guide](https://github.com/TrentBest/Profiles/blob/development/docs/HOW_TO.md) — task-oriented recipes for common profile operations.
+- [Theory](https://github.com/TrentBest/Profiles/blob/development/docs/THEORY.md) — the mental model behind entity abstraction, micro-data, identity sovereignty, and observer-specific disclosure.
+- [Architecture](https://github.com/TrentBest/Profiles/blob/development/docs/ARCHITECTURE.md) — responsibility boundaries, dependency direction, and the package's integration seams.
+- [Privacy model](https://github.com/TrentBest/Profiles/blob/development/docs/PRIVACY.md) — the privacy principles and distinctions the domain is designed to represent; not a legal-compliance guarantee.
+- [API map](https://github.com/TrentBest/Profiles/blob/development/docs/API.md) — a conceptual guide to the public types; XML API documentation remains authoritative for member-level details.
+- [Publishing and package metadata](https://github.com/TrentBest/Profiles/blob/development/docs/PUBLISHING.md) — package/release preparation information.
 
 ## Domain vocabulary at a glance
 
