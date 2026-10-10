@@ -1,6 +1,6 @@
 # Profiles API Map
 
-This page is a conceptual map of the public API. XML documentation in the package remains the authoritative member-level reference.
+Use this page to orient yourself among the public types. It is a conceptual map, not a complete signature reference; XML documentation in the package remains authoritative for member-level details. Examples and exact behavior should be checked against the current source branch.
 
 ## Identity
 
@@ -89,17 +89,17 @@ Creates public exposure reports without copying private values into the report.
 
 Describes a proposition required by an Experience.
 
-### AssumptionResult
+### AssumptionResult and AssumptionResultKind
 
-Returns Satisfied, NotSatisfied, or Unknown.
+`AssumptionResult` carries the assumption key, a `Kind`, and optional proof text. `AssumptionResultKind` is the outcome enum: `Satisfied`, `NotSatisfied`, or `Unknown`. The default in-process resolver maps missing dictionary keys and invalid operations to `Unknown`; applications should not treat self-declared claims as independent verification.
 
 ### IProfileAssumptionResolver
 
-Integration boundary for resolving propositions.
+Integration boundary for resolving propositions. Applications can provide another resolver when they need trusted verification or domain-specific semantics.
 
 ### ProfileAssumptionResolver
 
-Default in-process resolver.
+Default in-process resolver. Its predicate is application-supplied; the resolver does not itself establish that claim values are trustworthy or legally authoritative.
 
 ## Sovereign identity
 
@@ -136,10 +136,15 @@ Minimal access event containing profile, observer, and timestamp.
 
 ### IProfileAccessRecorder
 
-Boundary for sending access events to application-owned audit/persistence infrastructure.
+Boundary for sending access events to application-owned audit/persistence infrastructure. The consuming application supplies the implementation and decides retention, storage, and access controls.
 
 ## Dependency philosophy
 
 The Profiles domain intentionally has no required dependency on Entity Framework, SQL, HTTP, cloud storage, authentication SDKs, payment SDKs, or rendering frameworks.
 
 This is deliberate. Consumers compose the package with the infrastructure they already use.
+
+
+---
+
+**The Singularity Workshop — Tools for the curious, the bold, and the systemically inclined.**
