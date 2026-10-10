@@ -171,7 +171,7 @@ public sealed class Profile
             claims);
     }
 
-    private string ResolveAvatar(ProfileId observer, IReadOnlySet<ProfileId> observerGroups)
+    private string ResolveAvatar(ProfileId observer, HashSet<ProfileId> observerGroups)
     {
         if (_avatars.TryGetValue(ObserverAvatarKey(observer), out var direct)) return direct;
 
