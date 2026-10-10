@@ -564,4 +564,43 @@ public sealed class ProfileTests
         profile.SetPublicAvatar("default");
         return profile;
     }
+
+    [Fact]
+    public void AssumptionDefinitionsRejectInvalidContractsAndRemainDeconstructable()
+    {
+        Assert.Throws<ArgumentException>(() =>
+            new AssumptionDefinition(" ", "Description", _ => true));
+        Assert.Throws<ArgumentException>(() =>
+            new AssumptionDefinition("key", " ", _ => true));
+        Assert.Throws<ArgumentNullException>(() =>
+            new AssumptionDefinition("key", "Description", null!));
+
+        var definition = new AssumptionDefinition("key", "Description", _ => true);
+        var (key, description, resolver) = definition;
+
+        Assert.Equal("key", key);
+        Assert.Equal("Description", description);
+        Assert.Same(definition.Resolver, resolver);
+    }
+
+    [Fact]
+    public void IdentityLinksRejectUninitializedIdsAndUnknownKinds()
+    {
+        var canonical = ProfileId.New();
+        var linked = ProfileId.New();
+
+        Assert.Throws<ArgumentException>(() =>
+            new ProfileIdentityLink(default, linked, ProfileIdentityLinkKind.Persona));
+        Assert.Throws<ArgumentException>(() =>
+            new ProfileIdentityLink(canonical, default, ProfileIdentityLinkKind.Persona));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            new ProfileIdentityLink(canonical, linked, (ProfileIdentityLinkKind)int.MaxValue));
+
+        var link = new ProfileIdentityLink(canonical, linked, ProfileIdentityLinkKind.Persona);
+        var (actualCanonical, actualLinked, kind) = link;
+        Assert.Equal(canonical, actualCanonical);
+        Assert.Equal(linked, actualLinked);
+        Assert.Equal(ProfileIdentityLinkKind.Persona, kind);
+    }
+
 }
