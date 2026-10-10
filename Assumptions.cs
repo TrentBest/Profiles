@@ -1,7 +1,35 @@
 namespace TheSingularityWorkshop.Profiles;
 
 /// <summary>Describes a proposition an experience needs resolved.</summary>
-public sealed record AssumptionDefinition(string Key, string Description, Func<Profile, bool> Resolver);
+public sealed record AssumptionDefinition
+{
+    /// <summary>Creates a proposition with a stable key, human-readable meaning, and resolver.</summary>
+    public AssumptionDefinition(string key, string description, Func<Profile, bool> resolver)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+        ArgumentException.ThrowIfNullOrWhiteSpace(description);
+        Key = key;
+        Description = description;
+        Resolver = resolver ?? throw new ArgumentNullException(nameof(resolver));
+    }
+
+    /// <summary>Stable key identifying the assumption.</summary>
+    public string Key { get; }
+
+    /// <summary>Human-readable explanation of the proposition.</summary>
+    public string Description { get; }
+
+    /// <summary>Evaluates the proposition against a profile.</summary>
+    public Func<Profile, bool> Resolver { get; }
+
+    /// <summary>Deconstructs the definition into its constructor values.</summary>
+    public void Deconstruct(out string key, out string description, out Func<Profile, bool> resolver)
+    {
+        key = Key;
+        description = Description;
+        resolver = Resolver;
+    }
+}
 
 /// <summary>Outcome of resolving an assumption.</summary>
 public enum AssumptionResultKind
