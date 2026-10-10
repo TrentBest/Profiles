@@ -1,0 +1,177 @@
+name: Build, Test, Coverage, and Pack
+
+on:
+  push:
+    branches: [master, development]
+  pull_request:
+    branches: [master, development]
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publish the verified package to NuGet.org (release gate remains disabled in this workflow)'
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore tests/TheSingularityWorkshop.Profiles.Tests/TheSingularityWorkshop.Profiles.Tests.csproj
+
+      - name: Build
+        run: dotnet build tests/TheSingularityWorkshop.Profiles.Tests/TheSingularityWorkshop.Profiles.Tests.csproj --configuration Release --no-restore
+
+      - name: Test with coverage
+        run: dotnet test tests/TheSingularityWorkshop.Profiles.Tests/TheSingularityWorkshop.Profiles.Tests.csproj --configuration Release --no-build --collect:"XPlat Code Coverage;Format=cobertura" --results-directory ./TestResults --logger "trx;LogFileName=testresults.trx"
+
+      - name: Prepare coverage report
+        shell: bash
+        run: |
+          set -euo pipefail
+          coverage_file="$(find ./TestResults -type f -name 'coverage.cobertura.xml' -print -quit)"
+          if [[ -z "$coverage_file" ]]; then
+            echo "No coverage.cobertura.xml file was produced."
+            find ./TestResults -maxdepth 4 -type f -print || true
+            exit 1
+          fi
+          cp "$coverage_file" ./TestResults/coverage.cobertura.xml
+          echo "Prepared coverage report: $coverage_file"
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v6
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: TrentBest/Profiles
+          files: ./TestResults/coverage.cobertura.xml
+          fail_ci_if_error: true
+
+      - name: Pack
+        run: dotnet pack TheSingularityWorkshop.Profiles.csproj --configuration Release --no-build --output ./artifacts
+
+      - name: Audit packed NuGet artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import glob
+          import re
+          import zipfile
+          from xml.etree import ElementTree as ET
+
+          packages = glob.glob("artifacts/*.nupkg")
+          if len(packages) != 1:
+              raise SystemExit(f"Expected exactly one .nupkg, found {len(packages)}: {packages}")
+
+          package = packages[0]
+          with zipfile.ZipFile(package) as archive:
+              names = archive.namelist()
+              lower_names = {name.lower() for name in names}
+              required = [
+                  "README.md",
+                  "docs/ARCHITECTURE.md",
+                  "docs/CONSUMING.md",
+                  "docs/HOW_TO.md",
+                  "docs/API.md",
+                  "docs/PRIVACY.md",
+                  "docs/THEORY.md",
+                  "docs/PUBLISHING.md",
+                  "docs/images/profiles-architecture.svg",
+              ]
+              missing = [name for name in required if name.lower() not in lower_names]
+              if missing:
+                  raise SystemExit(f"Package is missing required assets: {missing}")
+
+              nuspec_names = [name for name in names if name.lower().endswith(".nuspec")]
+              dlls = [name for name in names if name.startswith("lib/net8.0/") and name.endswith(".dll")]
+              xml_docs = [name for name in names if name.startswith("lib/net8.0/") and name.endswith(".xml")]
+              if not nuspec_names:
+                  raise SystemExit("Package is missing its .nuspec manifest.")
+              if not dlls:
+                  raise SystemExit("Package is missing the net8.0 assembly.")
+              if not xml_docs:
+                  raise SystemExit("Package is missing XML API documentation.")
+
+              readme_name = next(name for name in names if name.lower() == "readme.md")
+              readme = archive.read(readme_name).decode("utf-8")
+              expected_visual = "raw.githubusercontent.com/TrentBest/Profiles/development/docs/images/profiles-architecture.svg"
+              if expected_visual not in readme:
+                  raise SystemExit("README architecture visual must use an absolute, package-safe URL.")
+              relative_links = re.findall(r"\]\((?!https?://|mailto:|#)([^)\s]+)\)", readme)
+              if relative_links:
+                  raise SystemExit(f"NuGet README contains relative links that will not resolve on nuget.org: {relative_links}")
+
+              root = ET.fromstring(archive.read(nuspec_names[0]))
+              metadata = root.find(".//{*}metadata")
+              if metadata is None:
+                  raise SystemExit("Package metadata is missing.")
+
+              def value(tag):
+                  node = metadata.find("{*}" + tag)
+                  return node.text.strip() if node is not None and node.text else ""
+
+              expected = {
+                  "id": "TheSingularityWorkshop.Profiles",
+                  "version": "0.1.0-alpha.1",
+                  "readme": "README.md",
+              }
+              for tag, expected_value in expected.items():
+                  actual = value(tag)
+                  if actual != expected_value:
+                      raise SystemExit(f"Unexpected package metadata {tag}: expected {expected_value!r}, got {actual!r}")
+              if not (value("license") or value("licenseUrl")):
+                  raise SystemExit("Package license metadata is missing.")
+
+              print(
+                  f"PASS: {package} contains the net8.0 assembly, XML docs, README, required guides, "
+                  "architecture visual, expected package identity/version, license metadata, and package-safe README links."
+              )
+          PY
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: profiles-package
+          path: artifacts/*.nupkg
+          if-no-files-found: error
+
+      - name: Upload test and coverage artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: profiles-test-results
+          path: ./TestResults/
+          if-no-files-found: warn
+
+  publish_nuget:
+    needs: verify
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish == true && github.ref == 'refs/heads/master' && false }}
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Download verified NuGet package
+        uses: actions/download-artifact@v4
+        with:
+          name: profiles-package
+          path: ./artifacts
+
+      - name: Authenticate with NuGet Trusted Publishing
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: TheSingularityWorkshop
+
+      - name: Publish package to NuGet.org
+        run: dotnet nuget push "./artifacts/*.nupkg" --source "https://api.nuget.org/v3/index.json" --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" --skip-duplicate
