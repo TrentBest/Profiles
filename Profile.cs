@@ -85,8 +85,12 @@ public sealed class Profile
     /// <summary>Creates a user-controlled group.</summary>
     public ProfileGroup DefineGroup(string name)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        if (_groups.TryGetValue(name, out var existing))
+            return existing;
+
         var group = new ProfileGroup(name);
-        _groups[name] = group;
+        _groups.Add(name, group);
         return group;
     }
 
