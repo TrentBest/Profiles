@@ -3,7 +3,7 @@
     <AssemblyName>TheSingularityWorkshop.Profiles</AssemblyName>
     <RootNamespace>TheSingularityWorkshop.Profiles</RootNamespace>
     <PackageId>TheSingularityWorkshop.Profiles</PackageId>
-    <Version>0.1.0-alpha.1</Version>
+    <Version>0.1.0-alpha.2</Version>
     <Authors>Trent Best</Authors>
     <Company>The Singularity Workshop</Company>
     <Description>Provider-neutral profile and entity abstractions for identity, micro-data, relationships, disclosure, representations, assumptions, and data sovereignty.</Description>
