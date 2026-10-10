@@ -1,5 +1,7 @@
 # The Singularity Workshop — Profiles
 
+[![Code Coverage](https://codecov.io/gh/TrentBest/Profiles/graph/badge.svg)](https://codecov.io/gh/TrentBest/Profiles)
+
 ![Profiles architecture](docs/images/profiles-architecture.svg)
 
 **Profiles is the Workshop's provider-neutral entity, identity, representation, and data-sovereignty abstraction.**
