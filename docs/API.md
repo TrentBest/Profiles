@@ -120,6 +120,14 @@ Built-in reasons for a private link:
 - Commercial
 - Custom
 
+### ExternalIdentityReference
+
+Provider-qualified external identity reference containing issuer/provider and subject. It carries no credentials and does not authenticate the subject.
+
+### ProfileExternalIdentityBinding
+
+Maps a domain profile to an external identity reference. Trusted integration is responsible for authentication, mapping policy, storage, and protection. The mapping does not grant authorization.
+
 ## Data licensing
 
 ### ProfileDataLicensePolicy
