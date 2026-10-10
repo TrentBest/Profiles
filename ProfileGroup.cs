@@ -17,7 +17,7 @@ public sealed class ProfileGroup
     public ProfileId Id { get; }
 
     /// <summary>User-facing group name.</summary>
-    public string Name { get; set; }
+    public string Name { get; }
 
     /// <summary>Current members.</summary>
     public IReadOnlySet<ProfileId> Members => new HashSet<ProfileId>(_members);
