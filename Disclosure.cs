@@ -22,6 +22,9 @@ public enum DisclosureScope
 /// </remarks>
 public sealed record DisclosureRule
 {
+    private readonly HashSet<ProfileId> _allowedObservers;
+    private readonly HashSet<ProfileId> _allowedGroups;
+
     /// <summary>Creates a disclosure rule with explicitly typed audience lists.</summary>
     public DisclosureRule(
         string attributeKey,
@@ -41,8 +44,8 @@ public sealed record DisclosureRule
 
         AttributeKey = attributeKey;
         Scope = scope;
-        AllowedObservers = allowedObservers is null ? new HashSet<ProfileId>() : new HashSet<ProfileId>(allowedObservers);
-        AllowedGroups = allowedGroups is null ? new HashSet<ProfileId>() : new HashSet<ProfileId>(allowedGroups);
+        _allowedObservers = allowedObservers is null ? [] : new HashSet<ProfileId>(allowedObservers);
+        _allowedGroups = allowedGroups is null ? [] : new HashSet<ProfileId>(allowedGroups);
         RepresentationOverride = representationOverride;
     }
 
@@ -53,10 +56,10 @@ public sealed record DisclosureRule
     public DisclosureScope Scope { get; }
 
     /// <summary>Observer IDs permitted by an Explicit rule.</summary>
-    public IReadOnlySet<ProfileId> AllowedObservers { get; }
+    public IReadOnlySet<ProfileId> AllowedObservers => new HashSet<ProfileId>(_allowedObservers);
 
     /// <summary>Group IDs permitted by a Group rule.</summary>
-    public IReadOnlySet<ProfileId> AllowedGroups { get; }
+    public IReadOnlySet<ProfileId> AllowedGroups => new HashSet<ProfileId>(_allowedGroups);
 
     /// <summary>Optional value used for any observer allowed by this rule.</summary>
     public string? RepresentationOverride { get; }
@@ -66,8 +69,8 @@ public sealed record DisclosureRule
     {
         DisclosureScope.Private => false,
         DisclosureScope.Public => true,
-        DisclosureScope.Explicit => AllowedObservers.Contains(requester),
-        DisclosureScope.Group => AllowedGroups.Overlaps(requesterGroups),
+        DisclosureScope.Explicit => _allowedObservers.Contains(requester),
+        DisclosureScope.Group => _allowedGroups.Overlaps(requesterGroups),
         _ => false
     };
 }
