@@ -20,7 +20,7 @@ public sealed class ProfileGroup
     public string Name { get; set; }
 
     /// <summary>Current members.</summary>
-    public IReadOnlySet<ProfileId> Members => _members;
+    public IReadOnlySet<ProfileId> Members => new HashSet<ProfileId>(_members);
 
     /// <summary>Adds an entity.</summary>
     public bool Add(ProfileId entity) => _members.Add(entity);
