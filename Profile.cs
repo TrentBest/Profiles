@@ -1,3 +1,5 @@
+using System.Collections.ObjectModel;
+
 namespace TheSingularityWorkshop.Profiles;
 
 /// <summary>Runtime profile sovereignty boundary for one ecosystem entity.</summary>
@@ -10,6 +12,9 @@ public sealed class Profile
     private readonly Dictionary<string, ProfileGroup> _groups = new(StringComparer.Ordinal);
     private readonly List<ProfileRelationship> _relationships = [];
     private readonly HashSet<ProfileId> _excluded = [];
+    private readonly ReadOnlyDictionary<string, ProfileClaim> _claimsView;
+    private readonly ReadOnlyDictionary<string, ProfileGroup> _groupsView;
+    private readonly ReadOnlyCollection<ProfileRelationship> _relationshipsView;
 
     /// <summary>Creates a profile.</summary>
     public Profile(ProfileEntityKind kind, string? displayName = null)
@@ -17,6 +22,9 @@ public sealed class Profile
         Id = ProfileId.New();
         Kind = kind;
         DisplayName = displayName;
+        _claimsView = new ReadOnlyDictionary<string, ProfileClaim>(_claims);
+        _groupsView = new ReadOnlyDictionary<string, ProfileGroup>(_groups);
+        _relationshipsView = _relationships.AsReadOnly();
     }
 
     /// <summary>Stable identity.</summary>
@@ -29,16 +37,16 @@ public sealed class Profile
     public string? DisplayName { get; set; }
 
     /// <summary>Micro-data claims held by this profile.</summary>
-    public IReadOnlyDictionary<string, ProfileClaim> Claims => _claims;
+    public IReadOnlyDictionary<string, ProfileClaim> Claims => _claimsView;
 
     /// <summary>User-defined disclosure groups.</summary>
-    public IReadOnlyDictionary<string, ProfileGroup> Groups => _groups;
+    public IReadOnlyDictionary<string, ProfileGroup> Groups => _groupsView;
 
     /// <summary>Relationships owned by this profile.</summary>
-    public IReadOnlyList<ProfileRelationship> Relationships => _relationships;
+    public IReadOnlyList<ProfileRelationship> Relationships => _relationshipsView;
 
     /// <summary>Profiles excluded by this profile.</summary>
-    public IReadOnlySet<ProfileId> ExcludedEntities => _excluded;
+    public IReadOnlySet<ProfileId> ExcludedEntities => new HashSet<ProfileId>(_excluded);
 
     /// <summary>Attribute keys currently marked public.</summary>
     public IEnumerable<string> PublicAttributeKeys => _rules.Values
