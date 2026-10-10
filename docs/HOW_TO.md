@@ -96,7 +96,7 @@ var representation = person.RepresentTo(
     new HashSet<ProfileId> { sibling.Id });
 ~~~
 
-The allowed IDs for a Group rule are group IDs. The observer's membership is supplied through `observerGroups`; it must be established by the consuming application.
+The `allowedGroups` argument contains group IDs, never observer IDs. Membership recorded in a group defined on this profile is included automatically when `RepresentTo` runs. The optional `observerGroups` argument is for additional memberships supplied by trusted host infrastructure; it must never be derived from untrusted observer input.
 
 ## Give different observers different avatars
 
