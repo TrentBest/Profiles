@@ -78,6 +78,11 @@ player.SetDisclosureRule(
     new DisclosureRule("language", DisclosureScope.Public));
 
 var representation = player.RepresentTo(observerId);
+
+// The configuration calls can also be chained:
+var anotherPlayer = new Profile(ProfileEntityKind.Individual, "Morgan")
+    .SetClaim(new ProfileClaim(language, "en-GB"))
+    .SetDisclosureRule(new DisclosureRule("language", DisclosureScope.Public));
 ~~~
 
 Available scopes are Private, Public, Group, and Explicit.
@@ -118,7 +123,7 @@ friends.Add(friendId);
 player.SetGroupAvatar("Friends", "cheshire-cat");
 ~~~
 
-When requesting a representation for a member, pass the relevant group IDs as the `observerGroups` argument to `RepresentTo`. Group rules use group IDs as their allowed audience.
+Groups defined on the profile automatically contribute membership when that profile creates a representation. The optional `observerGroups` argument can add trusted memberships managed by the host. Group rules use group IDs as their allowed audience; do not derive those IDs from untrusted observer input.
 
 ## Assumptions
 
