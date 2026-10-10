@@ -37,7 +37,7 @@ no display name
 no claims
 ~~~
 
-This is intentionally stronger than an application-level block button that only hides a UI element.
+This defines the representation returned by `Profile.RepresentTo`; it is not complete access control. The original in-memory `Profile` still contains its claims. The host application must protect access to that object and enforce authorization at endpoints, persistence, transport, and integrations.
 
 ## Observer-specific appearance
 
@@ -142,3 +142,12 @@ A user who never enables licensing has not implicitly offered their data for sal
 When licensing is enabled, the owner controls the micro-data allow-list. A future marketplace can negotiate the actual transaction and settlement independently.
 
 The platform's economic share is therefore a sustainability mechanism, not a transfer of ownership. The core deliberately does not prescribe a percentage.
+
+
+## Representation is not enforcement
+
+The Profiles privacy model describes how profile information should be represented to an observer. It does not, on its own, guarantee that every application path obeys that policy.
+
+The host application or a dedicated security component remains responsible for enforcing permissions, protecting the original profile and stored data, securing transport, and validating identity or authority. Access records also require application-provided recording and storage; they are not automatically collected by the core.
+
+SingularityWarehouse's set-based, mathematically bounded security theory can inform integrations and policy design. Profiles should not force that implementation on every consumer, nor imply that a formal model alone guarantees correct enforcement in a running system.
