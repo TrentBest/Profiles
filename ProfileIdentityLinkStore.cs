@@ -25,7 +25,7 @@ public sealed class ProfileIdentityLinkStore
     }
 
     /// <summary>Returns links known to trusted identity infrastructure.</summary>
-    public IReadOnlyList<ProfileIdentityLink> Links => _links;
+    public IReadOnlyList<ProfileIdentityLink> Links => _links.AsReadOnly();
 
     /// <summary>
     /// Resolves whether two profiles are privately linked.
