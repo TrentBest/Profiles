@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>TheSingularityWorkshop.Profiles</AssemblyName>
+    <RootNamespace>TheSingularityWorkshop.Profiles</RootNamespace>
+    <PackageId>TheSingularityWorkshop.Profiles</PackageId>
+    <Version>0.1.0-alpha.1</Version>
+    <Authors>Trent Best</Authors>
+    <Company>The Singularity Workshop</Company>
+    <Description>Provider-neutral profile and entity abstractions for identity, micro-data, relationships, disclosure, representations, assumptions, and data sovereignty.</Description>
+    <PackageTags>profiles;identity;privacy;entity;individual;company;group;organization;experience;agent;disclosure;relationships;representation;assumptions;sovereignty</PackageTags>
+    <RepositoryUrl>https://github.com/TrentBest/Profiles</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="tests/**/*.cs" />
+    <None Include="README.md" Pack="true" PackagePath="/" />
+    <None Include="docs/**/*.md" Pack="true" PackagePath="docs/%(RecursiveDir)%(Filename)%(Extension)" />
+    <None Include="docs/images/profiles-architecture.svg" Pack="true" PackagePath="docs/images/" />
+  </ItemGroup>
+</Project>
