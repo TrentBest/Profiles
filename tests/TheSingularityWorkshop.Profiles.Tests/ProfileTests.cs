@@ -256,6 +256,20 @@ public sealed class ProfileTests
     }
 
     [Fact]
+    public void DefiningAnExistingGroupPreservesItsMembership()
+    {
+        var profile = CreateProfile();
+        var member = ProfileId.New();
+        var first = profile.DefineGroup("Friends");
+        first.Add(member);
+
+        var second = profile.DefineGroup("Friends");
+
+        Assert.Same(first, second);
+        Assert.Contains(member, second.Members);
+    }
+
+    [Fact]
     public void GroupsManageMembership()
     {
         var profile = CreateProfile();
