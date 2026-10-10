@@ -54,13 +54,13 @@ This is the package's micro-data principle.
 
 A claim such as language, age, role, or capability can have an independent disclosure rule.
 
-That makes least-privilege behavior a natural consequence of the domain model.
+That makes least-privilege behavior expressible in the domain model. Least-privilege enforcement still depends on the host protecting the original profile and applying authorization consistently across every access path.
 
-## 4. Representation is a security boundary
+## 4. Representation is an information boundary
 
 ProfileRepresentation is not merely a view-model convenience.
 
-It is the semantic boundary between owned information and observer-visible information.
+It is the semantic boundary between owned information and observer-visible information. It is not, by itself, an enforcement boundary for the whole application: code that can read the original Profile object can still read its claims.
 
 ~~~text
 Profile
@@ -224,3 +224,18 @@ Observer-specific representation
 That relationship is what allows a shared ecosystem to contain many kinds of software without requiring every application to own or understand every user's entire identity record.
 
 > The profile owns the boundary. The observer receives the representation.
+
+
+## 14. Mathematical security theory and enforcement
+
+SingularityWarehouse's set-based, mathematically bounded security theory is a potential foundation for precise policy reasoning. Profiles should remain compatible with that direction without making its implementation mandatory.
+
+Keep the distinction explicit:
+
+- **Model:** defines entities, claims, observers, policies, and the representation intended for an observer.
+- **Decision:** evaluates whether a requested operation is permitted under the applicable policy.
+- **Enforcement:** prevents disallowed operations across application code, endpoints, storage, transport, and integrations.
+
+A mathematical bound can make a model precise; it does not automatically ensure that a host application invokes the model correctly or protects every route to the underlying data. Profiles implements a limited domain model, not a complete security enforcement system.
+
+This separation allows a future security package or host application to adopt set-based, capability-based, or other appropriate enforcement mechanisms while Profiles stays neutral and reusable.
