@@ -1,8 +1,14 @@
 # Profiles How-To Guide
 
-## Create the common entity types
+This is a task-oriented recipe collection for the current Profiles source. Snippets are checked against the current source shape, but have not been compiled together as one application. Each recipe is independent unless it says otherwise.
+
+Start with the [consuming guide](CONSUMING.md) for installation and the main identity/disclosure boundary. See [API map](API.md) for the public type vocabulary and [architecture](ARCHITECTURE.md) for responsibility ownership.
+
+## Create common entity types
 
 ~~~csharp
+using TheSingularityWorkshop.Profiles;
+
 var person = new Profile(ProfileEntityKind.Individual, "Ari");
 var company = new Profile(ProfileEntityKind.Company, "Dragonforge Industries");
 var guild = new Profile(ProfileEntityKind.Group, "Dragonforge Guild");
@@ -16,100 +22,143 @@ All of these are Profiles. The consuming application decides what each entity me
 ## Make a claim private
 
 ~~~csharp
-var location = ProfileAttributeDefinition.Create(
-    "location",
-    typeof(string));
+var person = new Profile(ProfileEntityKind.Individual, "Ari");
+var location = ProfileAttributeDefinition.Create("location", typeof(string));
 
 person.SetClaim(new ProfileClaim(location, "Tacoma"));
-
 person.SetDisclosureRule(
     new DisclosureRule("location", DisclosureScope.Private));
+
+var observerId = ProfileId.New();
+var representation = person.RepresentTo(observerId);
+// The location claim is not included by this Private rule.
 ~~~
 
-A representation will not contain the claim unless a policy explicitly permits it.
+A claim and its disclosure rule are separate: adding a value does not automatically make it public.
 
 ## Publish a claim
 
 ~~~csharp
+var person = new Profile(ProfileEntityKind.Individual, "Ari");
+var language = ProfileAttributeDefinition.Create("language", typeof(string));
+
+person.SetClaim(new ProfileClaim(language, "en-US"));
 person.SetDisclosureRule(
     new DisclosureRule("language", DisclosureScope.Public));
+
+var representation = person.RepresentTo(ProfileId.New());
+// The representation may include the language claim.
 ~~~
 
-Only the selected claim becomes public.
+Only the selected claim becomes public under this rule; other claims do not become public by association.
 
 ## Give one entity explicit access
 
 ~~~csharp
+var person = new Profile(ProfileEntityKind.Individual, "Ari");
+var trustedObserver = ProfileId.New();
+var phone = ProfileAttributeDefinition.Create("phone", typeof(string));
+
+person.SetClaim(new ProfileClaim(phone, "+1-555-0100"));
 person.SetDisclosureRule(
     new DisclosureRule(
         "phone",
         DisclosureScope.Explicit,
-        new HashSet<ProfileId> { trustedObserver.Id }));
+        new HashSet<ProfileId> { trustedObserver }));
+
+var allowed = person.RepresentTo(trustedObserver);
+var other = person.RepresentTo(ProfileId.New());
+// The phone claim is only intended for the trustedObserver.
 ~~~
+
+Treat the example phone number as fictional sample data. In a real application, the observer ID must come from your trusted identity/authentication boundary.
 
 ## Give a group access
 
 ~~~csharp
-var family = person.DefineGroup("Family");
-family.Add(sibling.Id);
+var person = new Profile(ProfileEntityKind.Individual, "Ari");
+var siblingId = ProfileId.New();
+var sibling = person.DefineGroup("Family");
+sibling.Add(siblingId);
 
+var emergencyContact = ProfileAttributeDefinition.Create(
+    "emergency-contact",
+    typeof(string));
+person.SetClaim(new ProfileClaim(emergencyContact, "Contact the family representative"));
 person.SetDisclosureRule(
     new DisclosureRule(
         "emergency-contact",
         DisclosureScope.Group,
-        new HashSet<ProfileId> { family.Id }));
+        new HashSet<ProfileId> { sibling.Id }));
 
 var representation = person.RepresentTo(
-    sibling.Id,
-    new HashSet<ProfileId> { family.Id });
+    siblingId,
+    new HashSet<ProfileId> { sibling.Id });
 ~~~
 
-The AllowedEntities values for Group rules are group IDs. The observer's membership is supplied through observerGroups.
+The allowed IDs for a Group rule are group IDs. The observer's membership is supplied through `observerGroups`; it must be established by the consuming application.
 
 ## Give different observers different avatars
 
 ~~~csharp
+var person = new Profile(ProfileEntityKind.Individual, "Ari");
+var friendId = ProfileId.New();
+var vipId = ProfileId.New();
+
 person.SetPublicAvatar("simple-avatar");
 
 var friends = person.DefineGroup("Friends");
-friends.Add(friend.Id);
+friends.Add(friendId);
 
 person.SetGroupAvatar("Friends", "cheshire-cat");
-person.SetAvatar(vip.Id, "formal-portrait");
+person.SetAvatar(vipId, "formal-portrait");
+
+var publicView = person.RepresentTo(ProfileId.New());
+var friendView = person.RepresentTo(
+    friendId,
+    new HashSet<ProfileId> { friends.Id });
+var vipView = person.RepresentTo(vipId);
 ~~~
 
-Resolution order is:
+Avatar resolution follows the current policy order:
 
 1. observer-specific avatar
 2. first matching group avatar
 3. public avatar
-4. anonymous
+4. anonymous avatar
+
+The strings are avatar identifiers/values for the consuming renderer; Profiles does not render images.
 
 ## Exclude an observer
 
 ~~~csharp
-person.Exclude(blockedObserver.Id);
+var person = new Profile(ProfileEntityKind.Individual, "Ari");
+var blockedObserver = ProfileId.New();
 
-var representation = person.RepresentTo(blockedObserver.Id);
+person.Exclude(blockedObserver);
+var representation = person.RepresentTo(blockedObserver);
 ~~~
 
-The excluded representation contains the stable profile ID, no display name, anonymous avatar, and no claims.
+The excluded representation contains the stable profile ID, no display name, the anonymous avatar, and no claims. This is a domain-level representation rule, not a replacement for network authorization or account security.
 
 ## Ask an assumption instead of requesting raw data
 
 ~~~csharp
+var person = new Profile(ProfileEntityKind.Individual, "Ari");
+var age = ProfileAttributeDefinition.Create("age", typeof(int));
+person.SetClaim(new ProfileClaim(age, 24));
+
 var adult = new AssumptionDefinition(
     "age-21-plus",
     "The profile represents someone aged 21 or older.",
     p => p.Claims.TryGetValue("age", out var claim)
-         && claim.Value is int age
-         && age >= 21);
+         && claim.Value is int value
+         && value >= 21);
 
-var result = new ProfileAssumptionResolver()
-    .Resolve(person, adult);
+var result = new ProfileAssumptionResolver().Resolve(person, adult);
 ~~~
 
-For production systems, place trusted verification and authorization around the assumption rather than treating self-declared values as legal proof.
+For production systems, place trusted verification and authorization around the assumption rather than treating self-declared values as legal proof. A claim's presence or a successful predicate is not itself independent verification.
 
 ## Create a private publisher identity
 
@@ -123,14 +172,13 @@ var publisher = new Profile(
     "Dragonforge Publishing");
 
 var links = new ProfileIdentityLinkStore();
-
 links.Add(new ProfileIdentityLink(
     canonical.Id,
     publisher.Id,
     ProfileIdentityLinkKind.Publisher));
 ~~~
 
-The link is available to the trusted identity layer. It is not emitted by RepresentTo.
+The link is available to the trusted identity layer. It is not emitted by `RepresentTo`. Protect the link store as sensitive identity-resolution data.
 
 ## Opt into data licensing
 
@@ -148,13 +196,17 @@ if (policy.CanLicense("language"))
 }
 ~~~
 
-Profiles does not create the sale.
+Profiles does not create or settle the sale. A separate system must define the buyer, purpose, terms, price, consent record, revocation behavior, and transaction lifecycle.
 
 ## Produce a public exposure report
 
 ~~~csharp
-var report = ProfilePublicDataReporter.Create(person);
+var person = new Profile(ProfileEntityKind.Individual, "Ari");
+var language = ProfileAttributeDefinition.Create("language", typeof(string));
+person.SetClaim(new ProfileClaim(language, "en-US"));
+person.SetDisclosureRule(new DisclosureRule("language", DisclosureScope.Public));
 
+var report = ProfilePublicDataReporter.Create(person);
 foreach (var key in report.PublicAttributes)
 {
     Console.WriteLine(key);
@@ -166,19 +218,21 @@ The report contains metadata about exposure, not the private values themselves.
 ## Record access
 
 ~~~csharp
+var person = new Profile(ProfileEntityKind.Individual, "Ari");
+var observerId = ProfileId.New();
 var record = new ProfileAccessRecord(
     person.Id,
-    observer.Id,
+    observerId,
     DateTimeOffset.UtcNow);
 
-recorder.Record(record);
+// Send record to your application's IProfileAccessRecorder implementation.
 ~~~
 
-The consuming system owns the recorder implementation and persistence.
+The consuming system owns the recorder implementation, retention policy, and persistence. Profiles does not create an audit database.
 
 ## Build a creator-defined business ecosystem
 
-Profiles can describe the entities around a creator's software without becoming that software's business model.
+Profiles can describe entities around a creator's software without becoming that software's business model.
 
 ~~~text
 Company
@@ -192,9 +246,9 @@ Company
    +-- publishes --> Products / services
 ~~~
 
-Economy, Micro Bundles, Experiences, and other Workshop packages can reference these profiles rather than inventing competing identity models.
+Economy, MicroBundles, Experiences, and other Workshop packages may reference Profiles rather than invent competing identity models. Those integrations should be treated as design opportunities unless a specific adapter or working integration is documented.
 
-## Do not put application behavior into Profiles
+## Keep application behavior outside Profiles
 
 Prefer:
 
@@ -219,3 +273,7 @@ Profiles
 ~~~
 
 The package stays useful because the boundary stays small.
+
+---
+
+**The Singularity Workshop — Tools for the curious, the bold, and the systemically inclined.**
