@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       publish:
-        description: 'Publish the verified package to NuGet.org (release gate remains disabled in this workflow)'
+        description: 'Publish the verified package to NuGet.org'
         required: true
         default: false
         type: boolean
@@ -122,7 +122,7 @@ jobs:
 
               expected = {
                   "id": "TheSingularityWorkshop.Profiles",
-                  "version": "0.1.0-alpha.1",
+                  "version": "0.1.0-alpha.2",
                   "readme": "README.md",
               }
               for tag, expected_value in expected.items():
@@ -156,7 +156,7 @@ jobs:
   publish_nuget:
     needs: verify
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish == true && github.ref == 'refs/heads/master' && false }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish == true && github.ref == 'refs/heads/master' && true }}
     permissions:
       contents: read
       id-token: write
