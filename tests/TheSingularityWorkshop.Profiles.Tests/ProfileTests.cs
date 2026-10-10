@@ -28,6 +28,31 @@ public sealed class ProfileTests
     }
 
     [Fact]
+    public void PublicCollectionViewsCannotMutateProfileInternals()
+    {
+        var profile = CreateProfile();
+        var other = ProfileId.New();
+        profile.SetClaim(new ProfileClaim(
+            ProfileAttributeDefinition.Create("language", typeof(string)),
+            "en-US"));
+        profile.Exclude(other);
+
+        Assert.Throws<NotSupportedException>(
+            () => ((IDictionary<string, ProfileClaim>)profile.Claims).Clear());
+
+        var exclusionSnapshot = Assert.IsType<HashSet<ProfileId>>(profile.ExcludedEntities);
+        exclusionSnapshot.Clear();
+        Assert.Contains(other, profile.ExcludedEntities);
+
+        var group = profile.DefineGroup("Friends");
+        var member = ProfileId.New();
+        group.Add(member);
+        var membershipSnapshot = Assert.IsType<HashSet<ProfileId>>(group.Members);
+        membershipSnapshot.Clear();
+        Assert.Contains(member, group.Members);
+    }
+
+    [Fact]
     public void ClaimsEnforceDeclaredValueType()
     {
         var definition = ProfileAttributeDefinition.Create("age", typeof(int));
