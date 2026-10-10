@@ -85,7 +85,7 @@ var anotherPlayer = new Profile(ProfileEntityKind.Individual, "Morgan")
     .SetDisclosureRule(new DisclosureRule("language", DisclosureScope.Public));
 ~~~
 
-Available scopes are Private, Public, Group, and Explicit.
+Available scopes are Private, Public, Group, and Explicit. For an Explicit rule, pass `allowedObservers` (observer IDs); for a Group rule, pass `allowedGroups` (group IDs). These are separate named parameters on purpose: a group ID is not an observer ID, and the API should make that distinction visible in the call site.
 
 ~~~text
 Profile (owned domain information)
