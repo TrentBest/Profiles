@@ -7,26 +7,67 @@ public enum DisclosureScope
     Private,
     /// <summary>Anyone may receive the representation.</summary>
     Public,
-    /// <summary>Members of a selected group may receive the representation.</summary>
+    /// <summary>Members of selected groups may receive the representation.</summary>
     Group,
-    /// <summary>A specifically authorized entity may receive the representation.</summary>
+    /// <summary>Specifically listed observers may receive the representation.</summary>
     Explicit
 }
 
-/// <summary>Defines the representation permitted for one attribute.</summary>
-public sealed record DisclosureRule(
-    string AttributeKey,
-    DisclosureScope Scope,
-    IReadOnlySet<ProfileId>? AllowedEntities = null,
-    string? PublicRepresentation = null)
+/// <summary>Defines the audience and optional value substitution for one attribute.</summary>
+/// <remarks>
+/// <para>Audience identifiers are intentionally separated: <see cref="AllowedObservers"/> contains observer IDs,
+/// while <see cref="AllowedGroups"/> contains group IDs. They are never interchangeable.</para>
+/// <para><see cref="RepresentationOverride"/> is used for every authorized audience, not only public disclosure.
+/// It can therefore provide a less precise or otherwise audience-safe value.</para>
+/// </remarks>
+public sealed record DisclosureRule
 {
+    /// <summary>Creates a disclosure rule with explicitly typed audience lists.</summary>
+    public DisclosureRule(
+        string attributeKey,
+        DisclosureScope scope,
+        IReadOnlySet<ProfileId>? allowedObservers = null,
+        IReadOnlySet<ProfileId>? allowedGroups = null,
+        string? representationOverride = null)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(attributeKey);
+        if (!Enum.IsDefined(scope))
+            throw new ArgumentOutOfRangeException(nameof(scope), scope, "Unknown disclosure scope.");
+
+        if (scope != DisclosureScope.Explicit && allowedObservers is { Count: > 0 })
+            throw new ArgumentException("Observer IDs are only valid for Explicit disclosure.", nameof(allowedObservers));
+        if (scope != DisclosureScope.Group && allowedGroups is { Count: > 0 })
+            throw new ArgumentException("Group IDs are only valid for Group disclosure.", nameof(allowedGroups));
+
+        AttributeKey = attributeKey;
+        Scope = scope;
+        AllowedObservers = allowedObservers is null ? new HashSet<ProfileId>() : new HashSet<ProfileId>(allowedObservers);
+        AllowedGroups = allowedGroups is null ? new HashSet<ProfileId>() : new HashSet<ProfileId>(allowedGroups);
+        RepresentationOverride = representationOverride;
+    }
+
+    /// <summary>Attribute key governed by this rule.</summary>
+    public string AttributeKey { get; }
+
+    /// <summary>Audience scope.</summary>
+    public DisclosureScope Scope { get; }
+
+    /// <summary>Observer IDs permitted by an Explicit rule.</summary>
+    public IReadOnlySet<ProfileId> AllowedObservers { get; }
+
+    /// <summary>Group IDs permitted by a Group rule.</summary>
+    public IReadOnlySet<ProfileId> AllowedGroups { get; }
+
+    /// <summary>Optional value used for any observer allowed by this rule.</summary>
+    public string? RepresentationOverride { get; }
+
     /// <summary>Determines whether the requester is permitted.</summary>
     public bool Allows(ProfileId requester, IReadOnlySet<ProfileId> requesterGroups) => Scope switch
     {
         DisclosureScope.Private => false,
         DisclosureScope.Public => true,
-        DisclosureScope.Explicit => AllowedEntities?.Contains(requester) == true,
-        DisclosureScope.Group => AllowedEntities is not null && AllowedEntities.Overlaps(requesterGroups),
+        DisclosureScope.Explicit => AllowedObservers.Contains(requester),
+        DisclosureScope.Group => AllowedGroups.Overlaps(requesterGroups),
         _ => false
     };
 }
