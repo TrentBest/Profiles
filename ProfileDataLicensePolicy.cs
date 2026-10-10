@@ -16,7 +16,8 @@ public sealed class ProfileDataLicensePolicy
     public bool Enabled { get; set; }
 
     /// <summary>Data attributes the owner has made eligible for licensing.</summary>
-    public IReadOnlySet<string> AttributeKeys => _attributeKeys;
+    /// <remarks>A defensive snapshot prevents callers from mutating the policy through this view.</remarks>
+    public IReadOnlySet<string> AttributeKeys => new HashSet<string>(_attributeKeys, StringComparer.Ordinal);
 
     /// <summary>Adds one attribute to the licensing allow-list.</summary>
     public void Allow(string attributeKey)
