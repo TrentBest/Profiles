@@ -38,7 +38,7 @@ Defines a named attribute and its expected CLR type.
 
 ### ProfileClaim
 
-Stores one typed value together with optional verification timestamp and provenance.
+Stores one typed value together with optional verification timestamp and provenance. Values are type-checked but not deep-cloned; prefer immutable value objects or treat values as immutable after claim creation.
 
 ## Disclosure
 
@@ -73,7 +73,7 @@ The relationship vocabulary remains application-defined.
 
 Observer-specific projection of a profile.
 
-It is intentionally distinct from Profile.
+It is intentionally distinct from Profile. Its claims dictionary is copied and read-only, so callers cannot mutate the representation's structure through the exposed collection. Arbitrary claim values are not deep-cloned, however; immutable values are the safest choice.
 
 ### ProfilePublicDataReport
 
@@ -144,7 +144,7 @@ Minimal access event containing profile, observer, and timestamp.
 
 ### IProfileAccessRecorder
 
-Boundary for sending access events to application-owned audit/persistence infrastructure. The consuming application supplies the implementation and decides retention, storage, and access controls.
+Boundary for sending access events to application-owned audit/persistence infrastructure. The consuming application supplies the implementation and decides retention, storage, and access controls. Creating a representation does not automatically record an access event; the host must invoke its recorder at the appropriate policy boundary.
 
 ## Dependency philosophy
 
