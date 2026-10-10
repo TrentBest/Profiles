@@ -53,6 +53,22 @@ public sealed class ProfileTests
     }
 
     [Fact]
+    public void AttributeDefinitionsValidateEveryPublicConstructionPath()
+    {
+        Assert.Throws<ArgumentException>(
+            () => new ProfileAttributeDefinition(" ", typeof(string)));
+        Assert.Throws<ArgumentNullException>(
+            () => new ProfileAttributeDefinition("name", null!));
+
+        var definition = new ProfileAttributeDefinition("name", typeof(string), "Display name");
+        var (key, valueType, description) = definition;
+
+        Assert.Equal("name", key);
+        Assert.Equal(typeof(string), valueType);
+        Assert.Equal("Display name", description);
+    }
+
+    [Fact]
     public void ClaimsEnforceDeclaredValueType()
     {
         var definition = ProfileAttributeDefinition.Create("age", typeof(int));
