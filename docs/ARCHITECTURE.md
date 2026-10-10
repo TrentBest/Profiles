@@ -185,3 +185,20 @@ Licensing is opt-in and distinct from disclosure.
 ProfileDataLicensePolicy says whether the owner has enabled licensing and which micro-data keys are eligible. It does not sell data, set prices, identify buyers, settle transactions, or encode a platform fee.
 
 Those concerns belong to a separate marketplace boundary.
+
+## Mathematical model versus enforcement
+
+The set-based, mathematically bounded security work in SingularityWarehouse is a source of architectural theory and inspiration. Profiles should preserve the ability to reason precisely about information, observers, and permitted representations without making one security implementation mandatory for every consumer.
+
+Keep these responsibilities distinct:
+
+- **Domain model:** describes claims, disclosure rules, exclusions, and observer-specific representations.
+- **Authorization and enforcement:** the host application or a dedicated security component decides whether an operation is permitted and enforces that decision at every relevant boundary.
+- **Mathematical security model:** can inform explicit, composable, testable policies, but does not by itself enforce those policies in a host application.
+
+A representation is a useful information boundary, not a substitute for endpoint authorization, persistence access control, transport protection, identity verification, or operational security. A caller that can access the original `Profile` object can still access its stored claims unless the surrounding system protects that object.
+
+Profiles should not require consumers to adopt a particular authorization framework. Integrations may use set-based or capability-based models where appropriate, while the core remains provider-neutral.
+
+The current package implements profile disclosure and representation behavior; it does not implement the complete SingularityWarehouse security model or claim that mathematical bounds alone guarantee system-wide enforcement.
+
