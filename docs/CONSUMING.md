@@ -128,15 +128,13 @@ An Experience can ask whether a proposition is satisfied without making every co
 var adult = new AssumptionDefinition(
     "age-21-plus",
     "The profile represents someone aged 21 or older.",
-    p => p.Claims.TryGetValue("age", out var claim)
-         && claim.Value is int age
-         && age >= 21);
+    p => (int)p.Claims["age"].Value >= 21);
 
 var result = new ProfileAssumptionResolver()
     .Resolve(player, adult);
 ~~~
 
-Possible outcomes are Satisfied, NotSatisfied, and Unknown. If the claim is absent, the predicate does not establish adulthood; the resolver's unknown-result behavior is part of the current domain contract.
+Possible outcomes are Satisfied, NotSatisfied, and Unknown. In this example, a missing `age` key raises `KeyNotFoundException`, which the default resolver maps to Unknown. This example assumes that any present `age` claim has an integer value.
 
 For sensitive or legally consequential propositions, put trusted verification above the Profiles domain. The core does not turn self-declared information into legal authority.
 
