@@ -202,3 +202,15 @@ Profiles should not require consumers to adopt a particular authorization framew
 
 The current package implements profile disclosure and representation behavior; it does not implement the complete SingularityWarehouse security model or claim that mathematical bounds alone guarantee system-wide enforcement.
 
+
+## External authentication identity mapping
+
+Profiles can carry a provider-qualified external identity reference through ExternalIdentityReference and ProfileExternalIdentityBinding. The issuer/provider and subject together identify the external account; an email address is not assumed to be the identity key.
+
+These types describe a mapping only. They do not authenticate a caller, validate a token, verify an email, prove ownership, or decide authorization. Trusted authentication integration must establish the external principal, control creation and storage of mappings, and protect them from disclosure. Provider credentials, tokens, SDKs, and protocol mechanics remain outside Profiles.
+
+## Coexistence with HeadlessAi
+
+[TheSingularityWorkshop.HeadlessAi](https://github.com/TrentBest/TheSingularityWorkshop.HeadlessAi) is a separate headless-agent runtime. A host application may compose HeadlessAi with Profiles to associate an agent with a domain identity, describe its public persona, or pass a filtered profile representation into an experience. This is an optional composition pattern, not a dependency from HeadlessAi to Profiles.
+
+The host remains responsible for deciding what context an agent receives and what the agent may do. A profile's claims, identity mapping, or representation are not tool permissions and do not authorize actions. Authentication, capability checks, authorization, and enforcement must remain explicit host or security-layer responsibilities.
