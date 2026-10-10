@@ -7,7 +7,6 @@ jobs:
   package:
     runs-on: ubuntu-24.04
     permissions:
-      id-token: write
       contents: read
     steps:
       - name: Checkout
@@ -27,7 +26,35 @@ jobs:
       - name: Pack
         run: dotnet pack TheSingularityWorkshop.Profiles.csproj --configuration Release --no-build --output ./artifacts
 
+      - name: Verify package contents
+        shell: bash
+        run: |
+          set -euo pipefail
+          package="$(find ./artifacts -maxdepth 1 -type f -name '*.nupkg' -print -quit)"
+          if [[ -z "$package" ]]; then
+            echo "No NuGet package was produced."
+            exit 1
+          fi
+          listing="$(unzip -Z1 "$package")"
+          printf '%s\n' "$listing"
+          for required in README.md docs/ARCHITECTURE.md docs/CONSUMING.md docs/HOW_TO.md docs/API.md docs/PRIVACY.md docs/THEORY.md docs/PUBLISHING.md docs/images/profiles-architecture.svg; do
+            if ! grep -Fxq "$required" <<< "$listing"; then
+              echo "Required package asset is missing: $required"
+              exit 1
+            fi
+          done
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: profiles-nuget-package
+          path: ./artifacts/*.nupkg
+          if-no-files-found: error
+
+      # Publishing is intentionally disabled. Enable both authentication and publish
+      # only after explicit release approval and a review of the generated package.
       - name: Authenticate with NuGet Trusted Publishing
+        if: ${{ github.event_name == 'workflow_dispatch' && false }}
         uses: NuGet/login@v1
         id: login
         with:
