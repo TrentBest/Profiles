@@ -120,12 +120,17 @@ In plain language: create an entity profile, add one small claim, declare the au
 | Representation | Observer-specific, permitted projection |
 | Assumption | A proposition with Satisfied, NotSatisfied, or Unknown result |
 | Identity link | A private link between profiles, for trusted infrastructure |
+| External identity binding | A provider-qualified reference mapped to a profile by trusted authentication integration |
 | Access record | A minimal event for application-owned transparency/audit |
 | Data-license policy | An opt-in allow-list; not a transaction |
 
 ## Ecosystem fit
 
 Profiles is designed to remain independently useful. Workshop applications may use it as shared domain vocabulary, while retaining freedom to choose their own storage, policy enforcement, verification providers, and presentation systems. Profiles does not require FSM_COS or an application host, and it does not turn every profile into a runtime bundle.
+
+### Coexistence with HeadlessAi
+
+[TheSingularityWorkshop.HeadlessAi](https://github.com/TrentBest/TheSingularityWorkshop.HeadlessAi) is a separate, headless agent runtime. Profiles can describe an agent's domain identity or provide a carefully filtered representation of its persona; HeadlessAi does not need Profiles as a core dependency. A host may compose both packages and decide which profile context an agent receives. Neither a profile claim nor an external identity binding grants permission to invoke tools, access data, or perform actions. The host or dedicated security layer must authenticate, authorize, and enforce those decisions.
 
 ## Package status and boundaries
 
