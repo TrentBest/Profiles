@@ -89,7 +89,7 @@ person.SetDisclosureRule(
     new DisclosureRule(
         "emergency-contact",
         DisclosureScope.Group,
-        new HashSet<ProfileId> { sibling.Id }));
+        allowedGroups: new HashSet<ProfileId> { sibling.Id }));
 
 var representation = person.RepresentTo(
     siblingId,
