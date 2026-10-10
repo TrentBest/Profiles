@@ -29,13 +29,13 @@ The glob is intentionally restricted to the package ID. Do not use a wildcard wh
 3. Confirm the README renders correctly.
 4. Confirm XML documentation builds without warnings.
 5. Confirm the unit-test workflow passes.
-6. Build the package locally.
+6. Build the package locally or run the manual package workflow.
 7. Inspect the generated .nupkg.
 8. Confirm the package README, linked Markdown guides, and architecture SVG are present in the generated package.
 9. Confirm no credentials, provider secrets, private identity data, or environment-specific configuration are packaged.
 10. Confirm the intended version.
 11. Review the NuGet Trusted Publishing configuration.
-12. Only then manually invoke the package workflow.
+12. Only then manually invoke the package workflow for an explicitly approved publication.
 
 ## Build and inspect locally
 
@@ -44,9 +44,10 @@ dotnet restore TheSingularityWorkshop.Profiles.csproj
 dotnet build TheSingularityWorkshop.Profiles.csproj --configuration Release
 dotnet test tests/TheSingularityWorkshop.Profiles.Tests/TheSingularityWorkshop.Profiles.Tests.csproj --configuration Release
 dotnet pack TheSingularityWorkshop.Profiles.csproj --configuration Release --output ./artifacts
+unzip -l ./artifacts/TheSingularityWorkshop.Profiles.0.1.0-alpha.1.nupkg
 ~~~
 
-The package workflow is deliberately manual. Adding the workflow does not publish anything by itself.
+The manual package workflow now verifies that the README, principal guides, and architecture SVG are included, then uploads the generated package as a workflow artifact for inspection. It does not need NuGet credentials to build and validate the package.
 
 ## What publication means
 
@@ -74,4 +75,4 @@ SingularityWarehouse's set-based, mathematically bounded security theory may inf
 
 Publication is an explicit release action.
 
-Do not turn publication into an automatic side effect of ordinary development commits.
+The package workflow is deliberately manual, and both NuGet authentication and package publication remain disabled in the workflow. Building or validating a package is not approval to publish it. Do not turn publication into an automatic side effect of ordinary development commits.
