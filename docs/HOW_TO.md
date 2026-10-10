@@ -151,14 +151,12 @@ person.SetClaim(new ProfileClaim(age, 24));
 var adult = new AssumptionDefinition(
     "age-21-plus",
     "The profile represents someone aged 21 or older.",
-    p => p.Claims.TryGetValue("age", out var claim)
-         && claim.Value is int value
-         && value >= 21);
+    p => (int)p.Claims["age"].Value >= 21);
 
 var result = new ProfileAssumptionResolver().Resolve(person, adult);
 ~~~
 
-For production systems, place trusted verification and authorization around the assumption rather than treating self-declared values as legal proof. A claim's presence or a successful predicate is not itself independent verification.
+If the `age` claim is absent, the dictionary lookup raises `KeyNotFoundException` and the default resolver returns Unknown. This snippet assumes that a present `age` claim has an integer value. For production systems, place trusted verification and authorization around the assumption rather than treating self-declared values as legal proof. A claim's presence or a successful predicate is not itself independent verification.
 
 ## Create a private publisher identity
 
