@@ -31,7 +31,7 @@ The glob is intentionally restricted to the package ID. Do not use a wildcard wh
 5. Confirm the unit-test workflow passes.
 6. Build the package locally.
 7. Inspect the generated .nupkg.
-8. Confirm the package README is present.
+8. Confirm the package README, linked Markdown guides, and architecture SVG are present in the generated package.
 9. Confirm no credentials, provider secrets, private identity data, or environment-specific configuration are packaged.
 10. Confirm the intended version.
 11. Review the NuGet Trusted Publishing configuration.
@@ -56,6 +56,7 @@ The current package is an intentionally small semantic foundation for:
 
 - entity abstraction
 - profile identity
+- provider-neutral external identity mapping contracts
 - micro-data
 - relationships
 - disclosure
@@ -65,7 +66,7 @@ The current package is an intentionally small semantic foundation for:
 - sovereign personas
 - voluntary data licensing
 
-Host applications or dedicated security components must enforce authorization and protect access to the original profile data. Future adapters can add authentication, verification, persistence, jurisdiction policy, communications, Economy, and other infrastructure without changing the core into those systems.
+Host applications or dedicated security components must enforce authorization and protect access to the original profile data. External identity binding contracts describe a mapping; they do not authenticate callers or establish authorization. Future adapters can add authentication, verification, persistence, jurisdiction policy, communications, Economy, and other infrastructure without changing the core into those systems.
 
 SingularityWarehouse's set-based, mathematically bounded security theory may inform those integrations. Profiles does not mandate that implementation, and its observer-specific representation must not be presented as complete application-wide access control.
 
