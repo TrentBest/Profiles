@@ -74,6 +74,21 @@ public sealed class ProfileTests
     }
 
     [Fact]
+    public void ProfileConfigurationCanBeFluent()
+    {
+        var language = ProfileAttributeDefinition.Create("language", typeof(string));
+        var profile = new Profile(ProfileEntityKind.Individual, "Ari")
+            .SetClaim(new ProfileClaim(language, "en-US"))
+            .SetDisclosureRule(new DisclosureRule("language", DisclosureScope.Public))
+            .SetPublicAvatar("ari-avatar");
+
+        var representation = profile.RepresentTo(ProfileId.New());
+
+        Assert.Equal("en-US", representation.Claims["language"]);
+        Assert.Equal("ari-avatar", representation.Avatar);
+    }
+
+    [Fact]
     public void PublicClaimIsIncluded()
     {
         var profile = CreateProfile();
@@ -142,6 +157,10 @@ public sealed class ProfileTests
         Assert.DoesNotContain(
             "language",
             profile.RepresentTo(stranger).Claims.Keys);
+
+        // Membership defined by this profile is sufficient; callers need not
+        // redundantly pass the same group ID into RepresentTo.
+        Assert.Equal("en-US", profile.RepresentTo(friend).Claims["language"]);
     }
 
     [Fact]
@@ -281,6 +300,19 @@ public sealed class ProfileTests
         Assert.Contains("age", report.PublicAttributes);
         Assert.True(report.DisplayNameIsPublic);
         Assert.True(report.HasPublicAvatar);
+    }
+
+    [Fact]
+    public void PublicDataReportIgnoresRulesWithoutMatchingClaims()
+    {
+        var profile = CreateProfile();
+        profile.SetDisclosureRule(new DisclosureRule("future-attribute", DisclosureScope.Public));
+
+        var report = ProfilePublicDataReporter.Create(profile);
+
+        Assert.DoesNotContain("future-attribute", report.PublicAttributes);
+        Assert.DoesNotContain("display-name", report.PublicAttributes);
+        Assert.True(report.DisplayNameIsPublic);
     }
 
     [Fact]
