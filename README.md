@@ -91,6 +91,7 @@ profile.SetClaim(new ProfileClaim(language, "en-US"));
 profile.SetDisclosureRule(
     new DisclosureRule("language", DisclosureScope.Public));
 
+var observerId = ProfileId.New();
 var representation = profile.RepresentTo(observerId);
 ~~~
 
