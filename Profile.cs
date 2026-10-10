@@ -71,14 +71,12 @@ public sealed class Profile
     public Profile SetDisclosureRule(DisclosureRule rule)
     {
         ArgumentNullException.ThrowIfNull(rule);
-        var allowedEntities = rule.AllowedEntities is null
-            ? null
-            : new HashSet<ProfileId>(rule.AllowedEntities);
         _rules[rule.AttributeKey] = new DisclosureRule(
             rule.AttributeKey,
             rule.Scope,
-            allowedEntities,
-            rule.PublicRepresentation);
+            rule.AllowedObservers,
+            rule.AllowedGroups,
+            rule.RepresentationOverride);
         return this;
     }
 
@@ -165,7 +163,7 @@ public sealed class Profile
         foreach (var (key, claim) in _claims)
         {
             if (_rules.TryGetValue(key, out var rule) && rule.Allows(observer, effectiveGroups))
-                claims[key] = rule.PublicRepresentation ?? claim.Value;
+                claims[key] = rule.RepresentationOverride ?? claim.Value;
         }
 
         return new ProfileRepresentation(
