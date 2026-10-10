@@ -105,6 +105,39 @@ public sealed class ProfileTests
     }
 
     [Fact]
+    public void DisclosureRuleAudienceTypesCannotBeConfused()
+    {
+        var observer = ProfileId.New();
+        var group = ProfileId.New();
+        var observers = new HashSet<ProfileId> { observer };
+        var groups = new HashSet<ProfileId> { group };
+        var explicitRule = new DisclosureRule(
+            "email",
+            DisclosureScope.Explicit,
+            allowedObservers: observers);
+        var groupRule = new DisclosureRule(
+            "email",
+            DisclosureScope.Group,
+            allowedGroups: groups);
+
+        observers.Clear();
+        groups.Clear();
+
+        Assert.True(explicitRule.Allows(observer, new HashSet<ProfileId>()));
+        Assert.True(groupRule.Allows(ProfileId.New(), new HashSet<ProfileId> { group }));
+        Assert.Empty(explicitRule.AllowedObservers.Except(new[] { observer }).ToArray());
+        Assert.Empty(groupRule.AllowedGroups.Except(new[] { group }).ToArray());
+        Assert.Throws<ArgumentException>(() => new DisclosureRule(
+            "email",
+            DisclosureScope.Group,
+            allowedObservers: new HashSet<ProfileId> { observer }));
+        Assert.Throws<ArgumentException>(() => new DisclosureRule(
+            "email",
+            DisclosureScope.Explicit,
+            allowedGroups: new HashSet<ProfileId> { group }));
+    }
+
+    [Fact]
     public void PublicClaimIsIncluded()
     {
         var profile = CreateProfile();
@@ -137,12 +170,12 @@ public sealed class ProfileTests
         var email = ProfileAttributeDefinition.Create("email", typeof(string));
 
         profile.SetClaim(new ProfileClaim(email, "owner@example.test"));
-        var allowedEntities = new HashSet<ProfileId> { allowed };
+        var allowedObservers = new HashSet<ProfileId> { allowed };
         profile.SetDisclosureRule(new DisclosureRule(
             "email",
             DisclosureScope.Explicit,
             allowedEntities));
-        allowedEntities.Clear();
+        allowedObservers.Clear();
 
         Assert.Equal("owner@example.test", profile.RepresentTo(allowed).Claims["email"]);
         Assert.DoesNotContain("email", profile.RepresentTo(denied).Claims.Keys);
