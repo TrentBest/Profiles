@@ -53,7 +53,7 @@ Controls the audience for a claim:
 
 ### DisclosureRule
 
-Connects an attribute key to a disclosure policy and optional public representation.
+Connects an attribute key to a disclosure policy. `AllowedObservers` contains observer IDs for Explicit rules; `AllowedGroups` contains group IDs for Group rules. `RepresentationOverride` substitutes a value for every observer permitted by the rule, so it can disclose a less precise value rather than the underlying claim.
 
 ## Groups and relationships
 
