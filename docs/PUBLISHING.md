@@ -65,7 +65,9 @@ The current package is an intentionally small semantic foundation for:
 - sovereign personas
 - voluntary data licensing
 
-Future adapters can add authentication, verification, persistence, jurisdiction policy, communications, Economy, and other infrastructure without changing the core into those systems.
+Host applications or dedicated security components must enforce authorization and protect access to the original profile data. Future adapters can add authentication, verification, persistence, jurisdiction policy, communications, Economy, and other infrastructure without changing the core into those systems.
+
+SingularityWarehouse's set-based, mathematically bounded security theory may inform those integrations. Profiles does not mandate that implementation, and its observer-specific representation must not be presented as complete application-wide access control.
 
 ## Release boundary
 
