@@ -78,24 +78,21 @@ dotnet add package TheSingularityWorkshop.Profiles
 The following is a **source-shaped example** of the intended flow; consult the consuming guide for full setup, prerequisites, and examples.
 
 ~~~csharp
-var profile = new Profile(
-    ProfileEntityKind.Individual,
-    "Ari");
-
 var language = ProfileAttributeDefinition.Create(
     "language",
     typeof(string),
     "Preferred language.");
 
-profile.SetClaim(new ProfileClaim(language, "en-US"));
-profile.SetDisclosureRule(
-    new DisclosureRule("language", DisclosureScope.Public));
+var profile = new Profile(ProfileEntityKind.Individual, "Ari")
+    .SetClaim(new ProfileClaim(language, "en-US"))
+    .SetDisclosureRule(
+        new DisclosureRule("language", DisclosureScope.Public));
 
 var observerId = ProfileId.New();
 var representation = profile.RepresentTo(observerId);
 ~~~
 
-In plain language: create an entity profile, add one small claim, declare the audience allowed to receive it, then request the observer-specific representation. The important step is not merely storing a value—it is making the disclosure boundary explicit.
+In plain language: create an entity profile, add one small claim, declare the audience allowed to receive it, then request the observer-specific representation. Configuration methods return the profile so related setup can be chained, while the disclosure decision remains explicit and visible. The important step is not merely storing a value—it is making the disclosure boundary explicit.
 
 **Expected behavior:** the returned representation is the observer-facing projection governed by the profile's disclosure and exclusion rules. Do not pass the complete Profile to an untrusted renderer or remote consumer when it only needs the representation.
 
