@@ -348,6 +348,17 @@ public sealed class ProfileTests
     }
 
     [Fact]
+    public void RelationshipsRejectUninitializedEndpointsAndBlankTypes()
+    {
+        var valid = ProfileId.New();
+
+        Assert.Throws<ArgumentException>(() => new ProfileRelationship(default, valid, "owns"));
+        Assert.Throws<ArgumentException>(() => new ProfileRelationship(valid, default, "owns"));
+        Assert.Throws<ArgumentException>(() => new ProfileRelationship(valid, ProfileId.New(), " "));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new Profile((ProfileEntityKind)int.MaxValue));
+    }
+
+    [Fact]
     public void RelationshipsMustBelongToTheirSubject()
     {
         var profile = CreateProfile();
