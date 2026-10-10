@@ -8,7 +8,7 @@ public sealed class ProfileDataLicensePolicyTests
     [Fact]
     public void AttributeKeysReturnsSnapshotRatherThanMutableInternalState()
     {
-        var policy = new ProfileDataLicensePolicy();
+        var policy = new ProfileDataLicensePolicy { Enabled = true };
         policy.Allow("language");
 
         var snapshot = Assert.IsType<HashSet<string>>(policy.AttributeKeys);
