@@ -71,7 +71,14 @@ public sealed class Profile
     public void SetDisclosureRule(DisclosureRule rule)
     {
         ArgumentNullException.ThrowIfNull(rule);
-        _rules[rule.AttributeKey] = rule;
+        var allowedEntities = rule.AllowedEntities is null
+            ? null
+            : new HashSet<ProfileId>(rule.AllowedEntities);
+        _rules[rule.AttributeKey] = new DisclosureRule(
+            rule.AttributeKey,
+            rule.Scope,
+            allowedEntities,
+            rule.PublicRepresentation);
     }
 
     /// <summary>Creates a user-controlled group.</summary>
