@@ -174,7 +174,7 @@ public sealed class ProfileTests
         profile.SetDisclosureRule(new DisclosureRule(
             "email",
             DisclosureScope.Explicit,
-            allowedEntities));
+            allowedObservers: allowedObservers));
         allowedObservers.Clear();
 
         Assert.Equal("owner@example.test", profile.RepresentTo(allowed).Claims["email"]);
@@ -195,7 +195,7 @@ public sealed class ProfileTests
         profile.SetDisclosureRule(new DisclosureRule(
             "language",
             DisclosureScope.Group,
-            new HashSet<ProfileId> { friends.Id }));
+            allowedGroups: new HashSet<ProfileId> { friends.Id }));
 
         Assert.Equal(
             "en-US",
@@ -221,7 +221,7 @@ public sealed class ProfileTests
         profile.SetDisclosureRule(new DisclosureRule(
             "location",
             DisclosureScope.Public,
-            PublicRepresentation: "region-only"));
+            representationOverride: "region-only"));
 
         Assert.Equal("region-only", profile.RepresentTo(ProfileId.New()).Claims["location"]);
     }
