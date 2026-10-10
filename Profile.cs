@@ -49,9 +49,8 @@ public sealed class Profile
     public IReadOnlySet<ProfileId> ExcludedEntities => new HashSet<ProfileId>(_excluded);
 
     /// <summary>Attribute keys currently marked public.</summary>
-    public IEnumerable<string> PublicAttributeKeys => _rules.Values
-        .Where(rule => rule.Scope == DisclosureScope.Public)
-        .Select(rule => rule.AttributeKey);
+    public IEnumerable<string> PublicAttributeKeys => _claims.Keys
+        .Where(key => _rules.TryGetValue(key, out var rule) && rule.Scope == DisclosureScope.Public);
 
     /// <summary>Whether the display name is public.</summary>
     public bool IsDisplayNamePublic =>
@@ -61,14 +60,15 @@ public sealed class Profile
     public bool HasPublicAvatar => _avatars.ContainsKey(ProfileAvatarKey);
 
     /// <summary>Defines or replaces a micro-data claim.</summary>
-    public void SetClaim(ProfileClaim claim)
+    public Profile SetClaim(ProfileClaim claim)
     {
         ArgumentNullException.ThrowIfNull(claim);
         _claims[claim.Definition.Key] = claim;
+        return this;
     }
 
     /// <summary>Defines or replaces disclosure for one micro-data attribute.</summary>
-    public void SetDisclosureRule(DisclosureRule rule)
+    public Profile SetDisclosureRule(DisclosureRule rule)
     {
         ArgumentNullException.ThrowIfNull(rule);
         var allowedEntities = rule.AllowedEntities is null
@@ -79,6 +79,7 @@ public sealed class Profile
             rule.Scope,
             allowedEntities,
             rule.PublicRepresentation);
+        return this;
     }
 
     /// <summary>Creates a user-controlled group.</summary>
@@ -90,37 +91,44 @@ public sealed class Profile
     }
 
     /// <summary>Adds a relationship owned by this profile.</summary>
-    public void AddRelationship(ProfileRelationship relationship)
+    public Profile AddRelationship(ProfileRelationship relationship)
     {
         ArgumentNullException.ThrowIfNull(relationship);
         if (relationship.Subject != Id)
             throw new ArgumentException("The relationship subject must be this profile.", nameof(relationship));
 
         _relationships.Add(relationship);
+        return this;
     }
 
     /// <summary>Excludes an observer from detailed representations.</summary>
-    public void Exclude(ProfileId observer) => _excluded.Add(observer);
+    public Profile Exclude(ProfileId observer)
+    {
+        _excluded.Add(observer);
+        return this;
+    }
 
     /// <summary>Removes an observer from the exclusion list.</summary>
     public bool RemoveExclusion(ProfileId observer) => _excluded.Remove(observer);
 
     /// <summary>Selects an avatar for one observer.</summary>
-    public void SetAvatar(ProfileId observer, string avatar)
+    public Profile SetAvatar(ProfileId observer, string avatar)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(avatar);
         _avatars[ObserverAvatarKey(observer)] = avatar;
+        return this;
     }
 
     /// <summary>Selects the public/default avatar.</summary>
-    public void SetPublicAvatar(string avatar)
+    public Profile SetPublicAvatar(string avatar)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(avatar);
         _avatars[ProfileAvatarKey] = avatar;
+        return this;
     }
 
     /// <summary>Selects an avatar for members of a group.</summary>
-    public void SetGroupAvatar(string groupName, string avatar)
+    public Profile SetGroupAvatar(string groupName, string avatar)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(groupName);
         ArgumentException.ThrowIfNullOrWhiteSpace(avatar);
@@ -128,12 +136,23 @@ public sealed class Profile
             throw new KeyNotFoundException($"Group '{groupName}' does not exist.");
 
         _avatars[GroupAvatarKey(groupName)] = avatar;
+        return this;
     }
 
     /// <summary>Creates the observer-specific representation.</summary>
     public ProfileRepresentation RepresentTo(ProfileId observer, IReadOnlySet<ProfileId>? observerGroups = null)
     {
-        observerGroups ??= new HashSet<ProfileId>();
+        var effectiveGroups = observerGroups is null
+            ? new HashSet<ProfileId>()
+            : new HashSet<ProfileId>(observerGroups);
+
+        // Membership recorded on this profile is authoritative for its own groups.
+        // Hosts may add trusted external group memberships through observerGroups.
+        foreach (var group in _groups.Values)
+        {
+            if (group.Contains(observer))
+                effectiveGroups.Add(group.Id);
+        }
 
         if (_excluded.Contains(observer))
             return new ProfileRepresentation(Id, null, "anonymous", new Dictionary<string, object?>());
@@ -141,24 +160,24 @@ public sealed class Profile
         var claims = new Dictionary<string, object?>(StringComparer.Ordinal);
         foreach (var (key, claim) in _claims)
         {
-            if (_rules.TryGetValue(key, out var rule) && rule.Allows(observer, observerGroups))
+            if (_rules.TryGetValue(key, out var rule) && rule.Allows(observer, effectiveGroups))
                 claims[key] = rule.PublicRepresentation ?? claim.Value;
         }
 
         return new ProfileRepresentation(
             Id,
-            IsDisplayNameVisible(observer, observerGroups) ? DisplayName : null,
-            ResolveAvatar(observer),
+            IsDisplayNameVisible(observer, effectiveGroups) ? DisplayName : null,
+            ResolveAvatar(observer, effectiveGroups),
             claims);
     }
 
-    private string ResolveAvatar(ProfileId observer)
+    private string ResolveAvatar(ProfileId observer, IReadOnlySet<ProfileId> observerGroups)
     {
         if (_avatars.TryGetValue(ObserverAvatarKey(observer), out var direct)) return direct;
 
         foreach (var group in _groups.Values)
         {
-            if (group.Contains(observer) && _avatars.TryGetValue(GroupAvatarKey(group.Name), out var groupAvatar))
+            if (observerGroups.Contains(group.Id) && _avatars.TryGetValue(GroupAvatarKey(group.Name), out var groupAvatar))
                 return groupAvatar;
         }
 
