@@ -53,6 +53,21 @@ public sealed class ProfileTests
     }
 
     [Fact]
+    public void RepresentationCopiesAndProtectsItsClaimsCollection()
+    {
+        var source = new Dictionary<string, object?> { ["language"] = "en-US" };
+        var representation = new ProfileRepresentation(ProfileId.New(), "Ari", null, source);
+
+        source["language"] = "fr-FR";
+        source["email"] = "ari@example.test";
+
+        Assert.Equal("en-US", representation.Claims["language"]);
+        Assert.DoesNotContain("email", representation.Claims.Keys);
+        Assert.Throws<NotSupportedException>(
+            () => ((IDictionary<string, object?>)representation.Claims)["language"] = "de-DE");
+    }
+
+    [Fact]
     public void AttributeDefinitionsValidateEveryPublicConstructionPath()
     {
         Assert.Throws<ArgumentException>(
@@ -213,7 +228,7 @@ public sealed class ProfileTests
     }
 
     [Fact]
-    public void PublicRepresentationCanReplaceSensitiveValue()
+    public void RepresentationOverrideCanReplaceSensitiveValue()
     {
         var profile = CreateProfile();
         var location = ProfileAttributeDefinition.Create("location", typeof(string));
