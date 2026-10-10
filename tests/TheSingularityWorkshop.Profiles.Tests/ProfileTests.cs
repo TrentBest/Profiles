@@ -106,10 +106,12 @@ public sealed class ProfileTests
         var email = ProfileAttributeDefinition.Create("email", typeof(string));
 
         profile.SetClaim(new ProfileClaim(email, "owner@example.test"));
+        var allowedEntities = new HashSet<ProfileId> { allowed };
         profile.SetDisclosureRule(new DisclosureRule(
             "email",
             DisclosureScope.Explicit,
-            new HashSet<ProfileId> { allowed }));
+            allowedEntities));
+        allowedEntities.Clear();
 
         Assert.Equal("owner@example.test", profile.RepresentTo(allowed).Claims["email"]);
         Assert.DoesNotContain("email", profile.RepresentTo(denied).Claims.Keys);
