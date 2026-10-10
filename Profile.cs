@@ -19,6 +19,9 @@ public sealed class Profile
     /// <summary>Creates a profile.</summary>
     public Profile(ProfileEntityKind kind, string? displayName = null)
     {
+        if (!Enum.IsDefined(kind))
+            throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown profile entity kind.");
+
         Id = ProfileId.New();
         Kind = kind;
         DisplayName = displayName;
