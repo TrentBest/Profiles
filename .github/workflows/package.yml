@@ -34,4 +34,5 @@ jobs:
           user: TheSingularityWorkshop
 
       - name: Publish package
+        if: ${{ github.event_name == 'workflow_dispatch' && false }}
         run: dotnet nuget push "./artifacts/*.nupkg" --source "https://api.nuget.org/v3/index.json" --api-key '${{ steps.login.outputs.NUGET_API_KEY }}' --skip-duplicate
