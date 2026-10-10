@@ -64,7 +64,7 @@ person.SetDisclosureRule(
     new DisclosureRule(
         "phone",
         DisclosureScope.Explicit,
-        new HashSet<ProfileId> { trustedObserver }));
+        allowedObservers: new HashSet<ProfileId> { trustedObserver }));
 
 var allowed = person.RepresentTo(trustedObserver);
 var other = person.RepresentTo(ProfileId.New());
