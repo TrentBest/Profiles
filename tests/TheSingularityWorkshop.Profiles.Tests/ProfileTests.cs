@@ -382,6 +382,33 @@ public sealed class ProfileTests
         Assert.Equal(time, record.AccessedAt);
     }
 
+    [Fact]
+    public void ExternalIdentityRequiresIssuerAndSubject()
+    {
+        Assert.Throws<ArgumentException>(() => new ExternalIdentityReference(" ", "subject"));
+        Assert.Throws<ArgumentException>(() => new ExternalIdentityReference("issuer", " "));
+
+        var reference = new ExternalIdentityReference("https://identity.example.test", "subject-123");
+
+        Assert.Equal("https://identity.example.test", reference.Issuer);
+        Assert.Equal("subject-123", reference.Subject);
+    }
+
+    [Fact]
+    public void ExternalIdentityBindingRequiresInitializedProfileId()
+    {
+        var reference = new ExternalIdentityReference("issuer", "subject");
+
+        Assert.Throws<ArgumentException>(
+            () => new ProfileExternalIdentityBinding(default, reference));
+
+        var profileId = ProfileId.New();
+        var binding = new ProfileExternalIdentityBinding(profileId, reference);
+
+        Assert.Equal(profileId, binding.ProfileId);
+        Assert.Equal(reference, binding.ExternalIdentity);
+    }
+
     private static Profile CreateProfile()
     {
         var profile = new Profile(ProfileEntityKind.Individual, "Example");
